@@ -49,6 +49,7 @@ func GetLocatioAvgnEndpoint(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	avg := 0
 	for _, visit := range visits {
 		// TODO filter visit
 		if data.Gender != nil && (*data.Gender) == (*visit.User.Gender) {
@@ -57,6 +58,7 @@ func GetLocatioAvgnEndpoint(w http.ResponseWriter, req *http.Request) {
 	}
 
 	var resp schema.ResponceLocationVisits
+	resp.Avg = float32(avg)
 	json.NewEncoder(w).Encode(resp)
 }
 

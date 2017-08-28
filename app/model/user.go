@@ -12,7 +12,7 @@ type User struct {
 	FirstName *string `json:"first_name"`
 	LastName  *string `json:"last_name"`
 	Gender    *string `json:"gender"`
-	BirthDate *int64  `json:"birth_date"`
+	BirthDate *int32  `json:"birth_date"`
 }
 
 type Users struct {

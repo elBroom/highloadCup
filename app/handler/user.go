@@ -49,14 +49,19 @@ func VisitUserEndpoint(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	var resp schema.ResponceUserVisits
 	for _, visit := range visits {
 		// TODO filter visit
 		if data.Country != nil && (*data.Country) == (*visit.Location.Country) {
 
 		}
+		var item schema.ResponceUserVisit
+		item.Mark = visit.Mark
+		item.Visited_at = visit.VisitedAt
+		item.Place = visit.Location.Place
+		resp.Visits = append(resp.Visits, &item)
 	}
 
-	var resp schema.ResponceUserVisits
 	json.NewEncoder(w).Encode(resp)
 }
 

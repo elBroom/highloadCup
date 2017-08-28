@@ -20,7 +20,7 @@ func main() {
 	}
 
 	router.Routing(_router)
-	srv := &http.Server{Addr: ":8000", Handler: _router}
+	srv := &http.Server{Addr: ":80", Handler: _router}
 	log.Println("Start server")
 	log.Fatal(srv.ListenAndServe())
 }
