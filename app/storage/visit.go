@@ -72,7 +72,7 @@ func (v *Visit) Update(id uint32, new_visit *model.Visit, st *Storage) error {
 			}
 		}
 
-		st.VisitList.Update(*old_visit, new_visit)
+		st.VisitList.Update(old_visit, new_visit)
 	}
 	if new_visit.LocationID != nil && isChangeLocation {
 		old_visit.Location = location
@@ -86,14 +86,14 @@ func (v *Visit) Update(id uint32, new_visit *model.Visit, st *Storage) error {
 		old_visit.VisitedAt = new_visit.VisitedAt
 	}
 	if new_visit.Mark != nil {
-		ol.Mark = new_visit.Mark
+		old_visit.Mark = new_visit.Mark
 	}
 	return nil
 }
 
 func (v *Visit) Get(id uint32) (*model.Visit, bool) {
 	v.mx.RLock()
-	defer v.mx.RLock()
+	defer v.mx.RUnlock()
 
 	visit, ok := v.visit[id]
 

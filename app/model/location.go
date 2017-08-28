@@ -7,3 +7,7 @@ type Location struct {
 	City     *string `json:"city"`
 	Distance *uint32 `json:"distance"`
 }
+
+type Locations struct {
+	Locations []Location `json:"locations"`
+}

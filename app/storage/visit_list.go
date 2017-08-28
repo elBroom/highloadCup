@@ -79,7 +79,7 @@ func (vl *VisitList) Update(old_visit *model.Visit, new_visit *model.Visit) erro
 
 func (vl *VisitList) GetByLocation(id uint32) ([]*model.Visit, bool) {
 	vl.mx.RLock()
-	defer vl.mx.RLock()
+	defer vl.mx.RUnlock()
 
 	visits, ok := vl.location[id]
 
@@ -91,7 +91,7 @@ func (vl *VisitList) GetByLocation(id uint32) ([]*model.Visit, bool) {
 
 func (vl *VisitList) GetByUser(id uint32) ([]*model.Visit, bool) {
 	vl.mx.RLock()
-	defer vl.mx.RLock()
+	defer vl.mx.RUnlock()
 
 	visits, ok := vl.user[id]
 
