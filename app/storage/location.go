@@ -60,7 +60,8 @@ func (l *Location) Get(id uint32) (*model.Location, bool) {
 	location, ok := l.location[id]
 
 	if ok {
-		return &(*location), ok
+		location_ := *location
+		return &location_, ok
 	}
 	return nil, ok
 }

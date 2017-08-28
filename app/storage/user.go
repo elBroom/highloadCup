@@ -64,7 +64,8 @@ func (u *User) Get(id uint32) (*model.User, bool) {
 	user, ok := u.user[id]
 
 	if ok {
-		return &(*user), ok
+		user_ := *user
+		return &user_, ok
 	}
 	return nil, ok
 }

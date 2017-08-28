@@ -4,6 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"fmt"
+
+	"strconv"
+
+	"time"
+
 	"github.com/elBroom/highloadCup/app/model"
 	"github.com/elBroom/highloadCup/app/schema"
 	"github.com/elBroom/highloadCup/app/storage"
@@ -56,17 +62,39 @@ func GetLocatioAvgnEndpoint(w http.ResponseWriter, req *http.Request) {
 			return nil
 		}
 
-		avg := 0
+		var sum int32
+		var count int32
 		for _, visit := range visits {
-			// TODO filter visit
-			if data.Gender != nil && (*data.Gender) == (*visit.User.Gender) {
-
+			if data.FromDate != nil && (*data.FromDate) >= (*visit.VisitedAt) {
+				continue
 			}
+			if data.ToDate != nil && (*data.ToDate) <= (*visit.VisitedAt) {
+				continue
+			}
+			if data.FromAge != nil &&
+				time.Now().AddDate(-(*data.FromAge), 0, 0).Unix() >= (*visit.User.BirthDate) {
+				continue
+			}
+			if data.ToAge != nil &&
+				time.Now().AddDate(-(*data.ToAge), 0, 0).Unix() <= (*visit.User.BirthDate) {
+				continue
+			}
+			if data.Gender != nil && (*data.Gender) != (*visit.User.Gender) {
+				continue
+			}
+			count++
+			sum += int32(*visit.Mark)
 		}
 
-		var resp schema.ResponceLocationVisits
-		resp.Avg = float32(avg)
-		json.NewEncoder(w).Encode(resp)
+		var avg float64
+		if count > 0 {
+			avg = Round(float64(sum/count), 0.5, 5)
+		}
+
+		answ := []byte(fmt.Sprintf(`{"avg": %.5f}`, avg))
+		w.Write(answ)
+		w.Header().Add("Content-Type", "application/json")
+		w.Header().Add("Content-Length", strconv.Itoa(len(answ)))
 		return nil
 	}, workers.TimeOut)
 

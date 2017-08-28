@@ -1,13 +1,13 @@
 package schema
 
 type RequestLocationVisits struct {
-	FromDate *int32  `json:"fromDate"`
-	ToDate   *int32  `json:"toDate"`
-	FromAge  *uint8  `json:"fromAge"`
-	ToAge    *uint8  `json:"toAge"`
+	FromDate *int64  `json:"fromDate"`
+	ToDate   *int64  `json:"toDate"`
+	FromAge  *int    `json:"fromAge"`
+	ToAge    *int    `json:"toAge"`
 	Gender   *string `json:"genser"`
 }
 
 type ResponceLocationVisits struct {
-	Avg float32 `json:"avg"`
+	Avg float64 `json:"avg"`
 }

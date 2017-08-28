@@ -89,4 +89,4 @@ func (p *Pool) runWorker() {
 }
 
 var Wp = NewPool(50)
-var TimeOut (time.Duration) = 100
+var TimeOut (time.Duration) = 3 * time.Second

@@ -8,7 +8,7 @@ import (
 
 const countUser = 1000074
 const countLocation = 1000074
-const countVisit = 1000074
+const countVisit = 10000460
 
 var (
 	ErrRequiredFields = errors.New("Not all required fields are filled")
@@ -18,10 +18,11 @@ var (
 )
 
 type Storage struct {
-	User      *User
-	Location  *Location
-	Visit     *Visit
-	VisitList *VisitList
+	User             *User
+	Location         *Location
+	Visit            *Visit
+	VisitList        *VisitList
+	CurrentTimestamp int32
 }
 
 func NewStorage() *Storage {

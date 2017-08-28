@@ -80,7 +80,8 @@ func importUsers(b []byte, store *storage.Storage) error {
 	}
 
 	for _, user := range users.Users {
-		store.User.Add(&user)
+		user_ := user
+		store.User.Add(&user_)
 	}
 	return nil
 }
@@ -94,7 +95,8 @@ func importLocations(b []byte, store *storage.Storage) error {
 	}
 
 	for _, location := range locations.Locations {
-		store.Location.Add(&location)
+		location_ := location
+		store.Location.Add(&location_)
 	}
 	return nil
 }
@@ -108,7 +110,8 @@ func importVisits(b []byte, store *storage.Storage) error {
 	}
 
 	for _, visit := range visits.Visits {
-		store.Visit.Add(&visit, store)
+		visit_ := visit
+		store.Visit.Add(&visit_, store)
 	}
 	return nil
 }

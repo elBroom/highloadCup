@@ -55,8 +55,8 @@ func (v *Visit) Update(id uint32, new_visit *model.Visit, st *Storage) error {
 
 	var location *model.Location
 	var user *model.User
-	isChangeLocation := old_visit.LocationID != new_visit.LocationID
-	isChangeUser := old_visit.UserID != new_visit.UserID
+	isChangeLocation := new_visit.LocationID != nil && old_visit.LocationID != new_visit.LocationID
+	isChangeUser := new_visit.UserID != nil && old_visit.UserID != new_visit.UserID
 	if isChangeLocation || isChangeUser {
 		if isChangeLocation {
 			location, ok = st.Location.Get(*(new_visit.LocationID))
@@ -74,11 +74,11 @@ func (v *Visit) Update(id uint32, new_visit *model.Visit, st *Storage) error {
 
 		st.VisitList.Update(old_visit, new_visit)
 	}
-	if new_visit.LocationID != nil && isChangeLocation {
+	if isChangeLocation {
 		old_visit.Location = location
 		old_visit.LocationID = new_visit.LocationID
 	}
-	if new_visit.UserID != nil && isChangeUser {
+	if isChangeUser {
 		old_visit.User = user
 		old_visit.UserID = new_visit.UserID
 	}
@@ -98,7 +98,8 @@ func (v *Visit) Get(id uint32) (*model.Visit, bool) {
 	visit, ok := v.visit[id]
 
 	if ok {
-		return &(*visit), ok
+		visit_ := *visit
+		return &visit_, ok
 	}
 	return nil, ok
 }

@@ -58,9 +58,17 @@ func VisitUserEndpoint(w http.ResponseWriter, req *http.Request) {
 
 		var resp schema.ResponceUserVisits
 		for _, visit := range visits {
-			// TODO filter visit
-			if data.Country != nil && (*data.Country) == (*visit.Location.Country) {
-
+			if data.FromDate != nil && (*data.FromDate) >= (*visit.VisitedAt) {
+				continue
+			}
+			if data.ToDate != nil && (*data.ToDate) <= (*visit.VisitedAt) {
+				continue
+			}
+			if data.Country != nil && (*data.Country) != (*visit.Location.Country) {
+				continue
+			}
+			if data.ToDistance != nil && (*data.ToDistance) >= (*visit.Location.Distance) {
+				continue
 			}
 			var item schema.ResponceUserVisit
 			item.Mark = visit.Mark
