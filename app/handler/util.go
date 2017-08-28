@@ -5,11 +5,19 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 )
 
 func NotFound(w http.ResponseWriter, req *http.Request) {
 	http.Error(w, "", http.StatusBadRequest)
+}
+
+func checkTimeout(w http.ResponseWriter, err error) {
+	if err != nil {
+		glog.Errorln("Timeout")
+		http.Error(w, err.Error(), http.StatusGatewayTimeout)
+	}
 }
 
 func parseID(req *http.Request) (uint32, error) {
