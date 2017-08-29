@@ -35,7 +35,7 @@ func (vl *VisitList) Update(old_visit *model.Visit, new_visit *model.Visit) erro
 	vl.mx.Lock()
 	defer vl.mx.Unlock()
 
-	if old_visit.LocationID != new_visit.LocationID {
+	if new_visit.LocationID != nil && old_visit.LocationID != new_visit.LocationID {
 		// Delete old location
 		location_old, ok := vl.location[*(old_visit.LocationID)]
 		if ok {
@@ -55,9 +55,9 @@ func (vl *VisitList) Update(old_visit *model.Visit, new_visit *model.Visit) erro
 		}
 	}
 
-	if old_visit.UserID != new_visit.UserID {
+	if new_visit.UserID != nil && old_visit.UserID != new_visit.UserID {
 		// Delete old user
-		user_old, ok := vl.location[*(old_visit.LocationID)]
+		user_old, ok := vl.user[*(old_visit.UserID)]
 		if ok {
 			for index, visit := range user_old {
 				if visit.ID == old_visit.ID {
@@ -67,11 +67,11 @@ func (vl *VisitList) Update(old_visit *model.Visit, new_visit *model.Visit) erro
 			}
 		}
 		// Add old user
-		user_new, ok := vl.location[*(new_visit.LocationID)]
+		user_new, ok := vl.user[*(new_visit.UserID)]
 		if ok {
-			vl.location[*(new_visit.LocationID)] = append(user_new, new_visit)
+			vl.user[*(new_visit.UserID)] = append(user_new, new_visit)
 		} else {
-			vl.location[*(new_visit.LocationID)] = []*model.Visit{new_visit}
+			vl.user[*(new_visit.UserID)] = []*model.Visit{new_visit}
 		}
 	}
 	return nil
