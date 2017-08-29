@@ -9,7 +9,6 @@ import (
 
 	"github.com/elBroom/highloadCup/app/model"
 	"github.com/elBroom/highloadCup/app/storage"
-	"github.com/golang/glog"
 )
 
 var errUnsupportedFile = errors.New("Imported file is not supported")
@@ -43,7 +42,6 @@ func ImportDataFromZip() error {
 			return errUnsupportedFile
 		}
 
-		glog.Infof("Start reading file %s", name)
 		// add concurrent processing
 		rc, err := f.Open()
 		bytes, err := ioutil.ReadAll(rc)

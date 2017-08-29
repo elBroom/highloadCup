@@ -10,16 +10,13 @@ import (
 	"github.com/elBroom/highloadCup/app/model"
 	"github.com/elBroom/highloadCup/app/storage"
 	"github.com/elBroom/highloadCup/app/workers"
-	"github.com/golang/glog"
 )
 
 func GetVisitEndpoint(w http.ResponseWriter, req *http.Request) {
 	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		glog.Infoln(req.Method, req.RequestURI)
-
 		id, err := parseID(req)
 		if err != nil {
-			glog.Infoln(err)
+
 			http.Error(w, "", http.StatusNotFound)
 			return nil
 		}
@@ -39,11 +36,9 @@ func GetVisitEndpoint(w http.ResponseWriter, req *http.Request) {
 
 func UpdateVisitEndpoint(w http.ResponseWriter, req *http.Request) {
 	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		glog.Infoln(req.Method, req.RequestURI)
-
 		id, err := parseID(req)
 		if err != nil {
-			glog.Infoln(err)
+
 			http.Error(w, "", http.StatusNotFound)
 			return nil
 		}
@@ -61,7 +56,7 @@ func UpdateVisitEndpoint(w http.ResponseWriter, req *http.Request) {
 
 		err = storage.DataStorage.Visit.Update(id, &visit, storage.DataStorage)
 		if err != nil {
-			glog.Infoln(err)
+
 			if err == storage.ErrDoesNotExist {
 				http.Error(w, "", http.StatusNotFound)
 			} else {
@@ -79,15 +74,13 @@ func UpdateVisitEndpoint(w http.ResponseWriter, req *http.Request) {
 
 func CreateVisitEndpoint(w http.ResponseWriter, req *http.Request) {
 	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		glog.Infoln(req.Method, req.RequestURI)
-
 		var visit model.Visit
 		defer req.Body.Close()
 		_ = json.NewDecoder(req.Body).Decode(&visit)
 
 		err := storage.DataStorage.Visit.Add(&visit, storage.DataStorage)
 		if err != nil {
-			glog.Infoln(err)
+
 			if err == storage.ErrDoesNotExist {
 				http.Error(w, "", http.StatusNotFound)
 			} else {

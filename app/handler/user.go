@@ -16,16 +16,13 @@ import (
 	"github.com/elBroom/highloadCup/app/schema"
 	"github.com/elBroom/highloadCup/app/storage"
 	"github.com/elBroom/highloadCup/app/workers"
-	"github.com/golang/glog"
 )
 
 func GetUserEndpoint(w http.ResponseWriter, req *http.Request) {
 	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		glog.Infoln(req.Method, req.RequestURI)
-
 		id, err := parseID(req)
 		if err != nil {
-			glog.Infoln(err)
+
 			http.Error(w, "", http.StatusNotFound)
 			return nil
 		}
@@ -45,11 +42,8 @@ func GetUserEndpoint(w http.ResponseWriter, req *http.Request) {
 
 func VisitUserEndpoint(w http.ResponseWriter, req *http.Request) {
 	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		glog.Infoln(req.Method, req.RequestURI)
-
 		id, err := parseID(req)
 		if err != nil {
-			glog.Infoln(err)
 			http.Error(w, "", http.StatusNotFound)
 			return nil
 		}
@@ -135,11 +129,9 @@ func VisitUserEndpoint(w http.ResponseWriter, req *http.Request) {
 
 func UpdateUserEndpoint(w http.ResponseWriter, req *http.Request) {
 	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		glog.Infoln(req.Method, req.RequestURI)
-
 		id, err := parseID(req)
 		if err != nil {
-			glog.Infoln(err)
+
 			http.Error(w, "", http.StatusNotFound)
 			return nil
 		}
@@ -162,7 +154,7 @@ func UpdateUserEndpoint(w http.ResponseWriter, req *http.Request) {
 
 		err = storage.DataStorage.User.Update(id, &user)
 		if err != nil {
-			glog.Infoln(err)
+
 			if err == storage.ErrDoesNotExist {
 				http.Error(w, "", http.StatusNotFound)
 			} else {
@@ -180,15 +172,13 @@ func UpdateUserEndpoint(w http.ResponseWriter, req *http.Request) {
 
 func CreateUserEndpoint(w http.ResponseWriter, req *http.Request) {
 	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		glog.Infoln(req.Method, req.RequestURI)
-
 		var user model.User
 		_ = json.NewDecoder(req.Body).Decode(&user)
 		defer req.Body.Close()
 
 		err := storage.DataStorage.User.Add(&user)
 		if err != nil {
-			glog.Infoln(err)
+
 			if err == storage.ErrDoesNotExist {
 				http.Error(w, "", http.StatusNotFound)
 			} else {

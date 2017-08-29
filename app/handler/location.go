@@ -17,16 +17,13 @@ import (
 	"github.com/elBroom/highloadCup/app/schema"
 	"github.com/elBroom/highloadCup/app/storage"
 	"github.com/elBroom/highloadCup/app/workers"
-	"github.com/golang/glog"
 )
 
 func GetLocationEndpoint(w http.ResponseWriter, req *http.Request) {
 	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		glog.Infoln(req.Method, req.RequestURI)
-
 		id, err := parseID(req)
 		if err != nil {
-			glog.Infoln(err)
+
 			http.Error(w, "", http.StatusNotFound)
 			return nil
 		}
@@ -46,11 +43,9 @@ func GetLocationEndpoint(w http.ResponseWriter, req *http.Request) {
 
 func GetLocatioAvgnEndpoint(w http.ResponseWriter, req *http.Request) {
 	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		glog.Infoln(req.Method, req.RequestURI)
-
 		id, err := parseID(req)
 		if err != nil {
-			glog.Infoln(err)
+
 			http.Error(w, "", http.StatusNotFound)
 			return nil
 		}
@@ -160,11 +155,9 @@ func GetLocatioAvgnEndpoint(w http.ResponseWriter, req *http.Request) {
 
 func UpdateLocationEndpoint(w http.ResponseWriter, req *http.Request) {
 	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		glog.Infoln(req.Method, req.RequestURI)
-
 		id, err := parseID(req)
 		if err != nil {
-			glog.Infoln(err)
+
 			http.Error(w, "", http.StatusNotFound)
 			return nil
 		}
@@ -177,7 +170,7 @@ func UpdateLocationEndpoint(w http.ResponseWriter, req *http.Request) {
 
 		err = storage.DataStorage.Location.Update(id, &location)
 		if err != nil {
-			glog.Infoln(err)
+
 			if err == storage.ErrDoesNotExist {
 				http.Error(w, "", http.StatusNotFound)
 			} else {
@@ -194,15 +187,13 @@ func UpdateLocationEndpoint(w http.ResponseWriter, req *http.Request) {
 
 func CreateLocationEndpoint(w http.ResponseWriter, req *http.Request) {
 	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		glog.Infoln(req.Method, req.RequestURI)
-
 		var location model.Location
 		defer req.Body.Close()
 		_ = json.NewDecoder(req.Body).Decode(&location)
 
 		err := storage.DataStorage.Location.Add(&location)
 		if err != nil {
-			glog.Infoln(err)
+
 			if err == storage.ErrDoesNotExist {
 				http.Error(w, "", http.StatusNotFound)
 			} else {
