@@ -13,7 +13,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	port := ":80"
+	port := ":8080"
 	log.Printf("Start server on %s", port)
 	log.Fatal(server.RunHTTPServer(port))
 }

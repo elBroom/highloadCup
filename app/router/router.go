@@ -19,5 +19,4 @@ func Routing(router *mux.Router) {
 	router.HandleFunc("/visits/{id}", handler.GetVisitEndpoint).Methods("GET")
 	router.HandleFunc("/visits/new", handler.CreateVisitEndpoint).Methods("POST")
 	router.HandleFunc("/visits/{id}", handler.UpdateVisitEndpoint).Methods("POST")
-
 }

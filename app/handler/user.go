@@ -6,6 +6,12 @@ import (
 
 	"sort"
 
+	"io/ioutil"
+
+	"math"
+	"net/url"
+	"strconv"
+
 	"github.com/elBroom/highloadCup/app/model"
 	"github.com/elBroom/highloadCup/app/schema"
 	"github.com/elBroom/highloadCup/app/storage"
@@ -48,9 +54,39 @@ func VisitUserEndpoint(w http.ResponseWriter, req *http.Request) {
 			return nil
 		}
 
-		var data schema.RequestUserVisits
-		_ = json.NewDecoder(req.Body).Decode(&data)
-		defer req.Body.Close()
+		params, err := url.ParseQuery(req.URL.RawQuery)
+		//  Parse fromDate parameter
+		fromDateStr := params.Get("fromDate")
+		fromDate := int64(0)
+
+		if fromDateStr != "" {
+			if fromDate, err = strconv.ParseInt(fromDateStr, 10, 64); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+			}
+		}
+
+		//  Parse toDate parameter
+		toDateStr := params.Get("toDate")
+		toDate := int64(math.MaxInt64)
+
+		if toDateStr != "" {
+			if toDate, err = strconv.ParseInt(toDateStr, 10, 64); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+			}
+		}
+
+		//  Parse country parameter
+		country := params.Get("country")
+
+		//  Parse toDistance parameter
+		toDistStr := params.Get("toDistance")
+		toDistance := int64(math.MaxInt32)
+
+		if toDistStr != "" {
+			if toDistance, err = strconv.ParseInt(toDistStr, 10, 64); err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+			}
+		}
 
 		visits, ok := storage.DataStorage.VisitList.GetByUser(id)
 		if !ok {
@@ -58,25 +94,35 @@ func VisitUserEndpoint(w http.ResponseWriter, req *http.Request) {
 			return nil
 		}
 
-		var resp schema.ResponceUserVisits
+		var resp (schema.ResponceUserVisits)
+		resp.Visits = []*schema.ResponceUserVisit{}
 		for _, visit := range visits {
-			if data.FromDate != nil && (*data.FromDate) >= (*visit.VisitedAt) {
+			if visit.LocationID == nil {
 				continue
 			}
-			if data.ToDate != nil && (*data.ToDate) <= (*visit.VisitedAt) {
+			ok := storage.DataStorage.Visit.FetchLocation(visit, storage.DataStorage)
+			if !ok {
 				continue
 			}
-			if data.Country != nil && (*data.Country) != (*visit.Location.Country) {
+			if fromDateStr != "" && visit.VisitedAt != nil && fromDate >= (*visit.VisitedAt) {
 				continue
 			}
-			if data.ToDistance != nil && (*data.ToDistance) >= (*visit.Location.Distance) {
+			if toDateStr != "" && visit.VisitedAt != nil && toDate <= (*visit.VisitedAt) {
 				continue
 			}
-			var item schema.ResponceUserVisit
-			item.Mark = visit.Mark
-			item.Visited_at = visit.VisitedAt
-			item.Place = visit.Location.Place
-			resp.Visits = append(resp.Visits, &item)
+			if country != "" && visit.Location.Country != nil && country != (*visit.Location.Country) {
+				continue
+			}
+			if toDistStr != "" && visit.Location.Distance != nil && uint32(toDistance) >= (*visit.Location.Distance) {
+				continue
+			}
+			if visit.VisitedAt != nil {
+				var item schema.ResponceUserVisit
+				item.Mark = visit.Mark
+				item.Visited_at = visit.VisitedAt
+				item.Place = visit.Location.Place
+				resp.Visits = append(resp.Visits, &item)
+			}
 		}
 
 		sort.Sort(&resp)
@@ -100,7 +146,19 @@ func UpdateUserEndpoint(w http.ResponseWriter, req *http.Request) {
 
 		var user model.User
 		_ = json.NewDecoder(req.Body).Decode(&user)
+
+		bytes, err := ioutil.ReadAll(req.Body)
 		defer req.Body.Close()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return nil
+		}
+
+		ok := CheckNull(bytes)
+		if ok {
+			http.Error(w, "", http.StatusBadRequest)
+			return nil
+		}
 
 		err = storage.DataStorage.User.Update(id, &user)
 		if err != nil {

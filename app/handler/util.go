@@ -7,6 +7,8 @@ import (
 
 	"math"
 
+	"strings"
+
 	"github.com/golang/glog"
 	"github.com/gorilla/mux"
 )
@@ -49,4 +51,8 @@ func Round(val float64, roundOn float64, places int) (newVal float64) {
 	}
 	newVal = round / pow
 	return
+}
+
+func CheckNull(b []byte) bool {
+	return strings.Contains(string(b), ": null")
 }

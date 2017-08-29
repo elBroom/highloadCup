@@ -5,6 +5,8 @@ import (
 
 	"encoding/json"
 
+	"io/ioutil"
+
 	"github.com/elBroom/highloadCup/app/model"
 	"github.com/elBroom/highloadCup/app/storage"
 	"github.com/elBroom/highloadCup/app/workers"
@@ -47,8 +49,15 @@ func UpdateVisitEndpoint(w http.ResponseWriter, req *http.Request) {
 		}
 
 		var visit model.Visit
-		_ = json.NewDecoder(req.Body).Decode(&visit)
 		defer req.Body.Close()
+		_ = json.NewDecoder(req.Body).Decode(&visit)
+
+		bytes, _ := ioutil.ReadAll(req.Body)
+		ok := CheckNull(bytes)
+		if ok {
+			http.Error(w, "", http.StatusBadRequest)
+			return nil
+		}
 
 		err = storage.DataStorage.Visit.Update(id, &visit, storage.DataStorage)
 		if err != nil {
@@ -73,8 +82,8 @@ func CreateVisitEndpoint(w http.ResponseWriter, req *http.Request) {
 		glog.Infoln(req.Method, req.RequestURI)
 
 		var visit model.Visit
-		_ = json.NewDecoder(req.Body).Decode(&visit)
 		defer req.Body.Close()
+		_ = json.NewDecoder(req.Body).Decode(&visit)
 
 		err := storage.DataStorage.Visit.Add(&visit, storage.DataStorage)
 		if err != nil {
