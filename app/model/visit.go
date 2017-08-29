@@ -7,8 +7,8 @@ type Visit struct {
 	VisitedAt  *int64  `json:"visited_at"`
 	Mark       *uint8  `json:"mark"`
 
-	User     *User
-	Location *Location
+	User     *User     `json:"-"`
+	Location *Location `json:"-"`
 }
 
 type Visits struct {

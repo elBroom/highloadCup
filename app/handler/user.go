@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"sort"
+
 	"github.com/elBroom/highloadCup/app/model"
 	"github.com/elBroom/highloadCup/app/schema"
 	"github.com/elBroom/highloadCup/app/storage"
@@ -77,6 +79,7 @@ func VisitUserEndpoint(w http.ResponseWriter, req *http.Request) {
 			resp.Visits = append(resp.Visits, &item)
 		}
 
+		sort.Sort(&resp)
 		json.NewEncoder(w).Encode(resp)
 		return nil
 	}, workers.TimeOut)

@@ -16,3 +16,15 @@ type ResponceUserVisit struct {
 type ResponceUserVisits struct {
 	Visits []*ResponceUserVisit `json:"visits"`
 }
+
+func (r *ResponceUserVisits) Len() int {
+	return len(r.Visits)
+}
+
+func (r *ResponceUserVisits) Less(i, j int) bool {
+	return (*(*r.Visits[i]).Visited_at) < (*(*r.Visits[j]).Visited_at)
+}
+
+func (r *ResponceUserVisits) Swap(i, j int) {
+	r.Visits[i], r.Visits[j] = r.Visits[j], r.Visits[i]
+}
