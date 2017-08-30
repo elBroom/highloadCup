@@ -64,7 +64,8 @@ func GetLocatioAvgnEndpoint(w http.ResponseWriter, req *http.Request) {
 
 		if fromDateStr != "" {
 			if fromDate, err = strconv.ParseInt(fromDateStr, 10, 64); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				http.Error(w, "", http.StatusBadRequest)
+				return nil
 			}
 		}
 
@@ -74,7 +75,8 @@ func GetLocatioAvgnEndpoint(w http.ResponseWriter, req *http.Request) {
 
 		if toDateStr != "" {
 			if toDate, err = strconv.ParseInt(toDateStr, 10, 64); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				http.Error(w, "", http.StatusBadRequest)
+				return nil
 			}
 		}
 
@@ -84,7 +86,8 @@ func GetLocatioAvgnEndpoint(w http.ResponseWriter, req *http.Request) {
 
 		if fromAgeStr != "" {
 			if fromAge, err = strconv.ParseInt(fromAgeStr, 10, 64); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				http.Error(w, "", http.StatusBadRequest)
+				return nil
 			}
 		}
 
@@ -94,7 +97,8 @@ func GetLocatioAvgnEndpoint(w http.ResponseWriter, req *http.Request) {
 
 		if toAgeStr != "" {
 			if toAge, err = strconv.ParseInt(toAgeStr, 10, 64); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				http.Error(w, "", http.StatusBadRequest)
+				return nil
 			}
 		}
 
@@ -161,7 +165,7 @@ func UpdateLocationEndpoint(w http.ResponseWriter, req *http.Request) {
 		bytes, err := ioutil.ReadAll(req.Body)
 		defer req.Body.Close()
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, "", http.StatusInternalServerError)
 			return nil
 		}
 

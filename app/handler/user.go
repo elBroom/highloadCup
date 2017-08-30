@@ -55,7 +55,8 @@ func VisitUserEndpoint(w http.ResponseWriter, req *http.Request) {
 
 		if fromDateStr != "" {
 			if fromDate, err = strconv.ParseInt(fromDateStr, 10, 64); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				http.Error(w, "", http.StatusBadRequest)
+				return nil
 			}
 		}
 
@@ -65,7 +66,8 @@ func VisitUserEndpoint(w http.ResponseWriter, req *http.Request) {
 
 		if toDateStr != "" {
 			if toDate, err = strconv.ParseInt(toDateStr, 10, 64); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				http.Error(w, "", http.StatusBadRequest)
+				return nil
 			}
 		}
 
@@ -78,7 +80,8 @@ func VisitUserEndpoint(w http.ResponseWriter, req *http.Request) {
 
 		if toDistStr != "" {
 			if toDistance, err = strconv.ParseInt(toDistStr, 10, 64); err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
+				http.Error(w, "", http.StatusBadRequest)
+				return nil
 			}
 		}
 
@@ -138,7 +141,7 @@ func UpdateUserEndpoint(w http.ResponseWriter, req *http.Request) {
 		bytes, err := ioutil.ReadAll(req.Body)
 		defer req.Body.Close()
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, "", http.StatusInternalServerError)
 			return nil
 		}
 
