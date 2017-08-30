@@ -98,16 +98,16 @@ func VisitUserEndpoint(w http.ResponseWriter, req *http.Request) {
 			if !ok {
 				continue
 			}
-			if fromDateStr != "" && visit.VisitedAt != nil && fromDate >= (*visit.VisitedAt) {
+			if fromDateStr != "" && visit.VisitedAt != nil && fromDate > (*visit.VisitedAt) {
 				continue
 			}
-			if toDateStr != "" && visit.VisitedAt != nil && toDate <= (*visit.VisitedAt) {
+			if toDateStr != "" && visit.VisitedAt != nil && toDate < (*visit.VisitedAt) {
 				continue
 			}
 			if country != "" && visit.Location.Country != nil && country != (*visit.Location.Country) {
 				continue
 			}
-			if toDistStr != "" && visit.Location.Distance != nil && uint32(toDistance) >= (*visit.Location.Distance) {
+			if toDistStr != "" && visit.Location.Distance != nil && uint32(toDistance) <= (*visit.Location.Distance) {
 				continue
 			}
 			if visit.VisitedAt != nil {
@@ -131,13 +131,9 @@ func UpdateUserEndpoint(w http.ResponseWriter, req *http.Request) {
 	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
 		id, err := parseID(req)
 		if err != nil {
-
 			http.Error(w, "", http.StatusNotFound)
 			return nil
 		}
-
-		var user model.User
-		_ = json.NewDecoder(req.Body).Decode(&user)
 
 		bytes, err := ioutil.ReadAll(req.Body)
 		defer req.Body.Close()
@@ -151,6 +147,8 @@ func UpdateUserEndpoint(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "", http.StatusBadRequest)
 			return nil
 		}
+		var user model.User
+		_ = json.Unmarshal(bytes, &user)
 
 		err = storage.DataStorage.User.Update(id, &user)
 		if err != nil {

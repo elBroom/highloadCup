@@ -43,16 +43,20 @@ func UpdateVisitEndpoint(w http.ResponseWriter, req *http.Request) {
 			return nil
 		}
 
-		var visit model.Visit
+		bytes, err := ioutil.ReadAll(req.Body)
 		defer req.Body.Close()
-		_ = json.NewDecoder(req.Body).Decode(&visit)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return nil
+		}
 
-		bytes, _ := ioutil.ReadAll(req.Body)
 		ok := CheckNull(bytes)
 		if ok {
 			http.Error(w, "", http.StatusBadRequest)
 			return nil
 		}
+		var visit model.Visit
+		_ = json.Unmarshal(bytes, &visit)
 
 		err = storage.DataStorage.Visit.Update(id, &visit, storage.DataStorage)
 		if err != nil {

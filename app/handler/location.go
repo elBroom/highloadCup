@@ -13,8 +13,9 @@ import (
 	"math"
 	"net/url"
 
+	"io/ioutil"
+
 	"github.com/elBroom/highloadCup/app/model"
-	"github.com/elBroom/highloadCup/app/schema"
 	"github.com/elBroom/highloadCup/app/storage"
 	"github.com/elBroom/highloadCup/app/workers"
 )
@@ -49,10 +50,6 @@ func GetLocatioAvgnEndpoint(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "", http.StatusNotFound)
 			return nil
 		}
-
-		var data schema.RequestLocationVisits
-		_ = json.NewDecoder(req.Body).Decode(&data)
-		defer req.Body.Close()
 
 		visits, _ := storage.DataStorage.VisitList.GetByLocation(id)
 		if visits == nil {
@@ -122,11 +119,11 @@ func GetLocatioAvgnEndpoint(w http.ResponseWriter, req *http.Request) {
 			}
 
 			if fromAgeStr != "" && visit.User.BirthDate != nil &&
-				time.Now().AddDate(-int(fromAge), 0, 0).Unix() >= (*visit.User.BirthDate) {
+				time.Now().AddDate(-int(fromAge), 0, 0).Unix() <= (*visit.User.BirthDate) {
 				continue
 			}
 			if toAgeStr != "" && visit.User.BirthDate != nil &&
-				time.Now().AddDate(-int(toAge), 0, 0).Unix() <= (*visit.User.BirthDate) {
+				time.Now().AddDate(-int(toAge), 0, 0).Unix() >= (*visit.User.BirthDate) {
 				continue
 			}
 			if gender != "" && visit.User.Gender != nil && gender != (*visit.User.Gender) {
@@ -157,20 +154,27 @@ func UpdateLocationEndpoint(w http.ResponseWriter, req *http.Request) {
 	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
 		id, err := parseID(req)
 		if err != nil {
-
 			http.Error(w, "", http.StatusNotFound)
 			return nil
 		}
 
-		var location model.Location
-		err = json.NewDecoder(req.Body).Decode(&location)
+		bytes, err := ioutil.ReadAll(req.Body)
+		defer req.Body.Close()
 		if err != nil {
-			http.Error(w, "", http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return nil
 		}
+
+		ok := CheckNull(bytes)
+		if ok {
+			http.Error(w, "", http.StatusBadRequest)
+			return nil
+		}
+		var location model.Location
+		_ = json.Unmarshal(bytes, &location)
 
 		err = storage.DataStorage.Location.Update(id, &location)
 		if err != nil {
-
 			if err == storage.ErrDoesNotExist {
 				http.Error(w, "", http.StatusNotFound)
 			} else {

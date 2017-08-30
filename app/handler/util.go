@@ -54,5 +54,5 @@ func Round(val float64, roundOn float64, places int) (newVal float64) {
 }
 
 func CheckNull(b []byte) bool {
-	return strings.Contains(string(b), ": null")
+	return string(b) == "" || strings.Contains(string(b), ": null")
 }
