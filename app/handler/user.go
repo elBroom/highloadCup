@@ -6,193 +6,161 @@ import (
 
 	"sort"
 
-	"io/ioutil"
-
-	"math"
-	"net/url"
-	"strconv"
-
 	"github.com/elBroom/highloadCup/app/model"
 	"github.com/elBroom/highloadCup/app/schema"
 	"github.com/elBroom/highloadCup/app/storage"
-	"github.com/elBroom/highloadCup/app/workers"
+	"github.com/valyala/fasthttp"
 )
 
-func GetUserEndpoint(w http.ResponseWriter, req *http.Request) {
-	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		id, err := parseID(req)
-		if err != nil {
+func GetUserEndpoint(ctx *fasthttp.RequestCtx) {
+	id, err := parseID(ctx)
+	if err != nil {
+		ctx.SetStatusCode(http.StatusNotFound)
+		return
+	}
 
-			http.Error(w, "", http.StatusNotFound)
-			return nil
+	user, ok := storage.DataStorage.User.Get(id)
+	if !ok {
+		ctx.SetStatusCode(http.StatusNotFound)
+		return
+	}
+
+	writeObj(ctx, user)
+}
+
+func VisitUserEndpoint(ctx *fasthttp.RequestCtx) {
+	id, err := parseID(ctx)
+	if err != nil {
+		ctx.SetStatusCode(http.StatusNotFound)
+		return
+	}
+
+	params := ctx.QueryArgs()
+
+	//  Parse fromDate parameter
+	var fromDate int64
+	if params.Has("fromDate") {
+		if _, err := params.GetUint("fromDate"); err != nil {
+			ctx.SetStatusCode(http.StatusBadRequest)
+			return
 		}
+		tmp, _ := params.GetUint("fromDate")
+		fromDate = int64(tmp)
+	}
 
-		user, ok := storage.DataStorage.User.Get(id)
+	//  Parse toDate parameter
+	var toDate int64
+	if params.Has("toDate") {
+		if _, err := params.GetUint("toDate"); err != nil {
+			ctx.SetStatusCode(http.StatusBadRequest)
+			return
+		}
+		tmp, _ := params.GetUint("toDate")
+		toDate = int64(tmp)
+	}
+
+	//  Parse country parameter
+	var country string
+	if params.Has("country") {
+		country = string(params.Peek("country"))
+		if country == "" {
+			ctx.SetStatusCode(http.StatusBadRequest)
+			return
+		}
+	}
+
+	//  Parse toDistance parameter
+	var toDistance uint32
+	if params.Has("toDistance") {
+		if _, err := params.GetUint("toDistance"); err != nil {
+			ctx.SetStatusCode(http.StatusBadRequest)
+			return
+		}
+		tmp, _ := params.GetUint("toDistance")
+		toDistance = uint32(tmp)
+	}
+
+	visits, ok := storage.DataStorage.VisitList.GetByUser(id, storage.DataStorage)
+	if !ok {
+		ctx.SetStatusCode(http.StatusNotFound)
+		return
+	}
+
+	var resp (schema.ResponceUserVisits)
+	resp.Visits = []*schema.ResponceUserVisit{}
+	for _, visit := range visits {
+		if visit.LocationID == nil {
+			continue
+		}
+		location, ok := storage.DataStorage.Location.Get(*visit.LocationID)
 		if !ok {
-			http.Error(w, "", http.StatusNotFound)
-			return nil
+			continue
 		}
+		if params.Has("fromDate") && fromDate > (*visit.VisitedAt) {
+			continue
+		}
+		if params.Has("toDate") && toDate < (*visit.VisitedAt) {
+			continue
+		}
+		if params.Has("country") && country != (*location.Country) {
+			continue
+		}
+		if params.Has("toDistance") && toDistance <= (*location.Distance) {
+			continue
+		}
+		var item schema.ResponceUserVisit
+		item.Mark = visit.Mark
+		item.Visited_at = visit.VisitedAt
+		item.Place = location.Place
+		resp.Visits = append(resp.Visits, &item)
+	}
 
-		json.NewEncoder(w).Encode(user)
-		return nil
-	}, workers.TimeOut)
-
-	checkTimeout(w, err)
+	sort.Sort(&resp)
+	writeObj(ctx, resp)
 }
 
-func VisitUserEndpoint(w http.ResponseWriter, req *http.Request) {
-	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		id, err := parseID(req)
-		if err != nil {
-			http.Error(w, "", http.StatusNotFound)
-			return nil
+func UpdateUserEndpoint(ctx *fasthttp.RequestCtx) {
+	id, err := parseID(ctx)
+	if err != nil {
+		ctx.SetStatusCode(http.StatusNotFound)
+		return
+	}
+
+	bytes := ctx.PostBody()
+	ok := CheckNull(bytes)
+	if ok {
+		ctx.SetStatusCode(http.StatusBadRequest)
+		return
+	}
+	var user model.User
+	_ = json.Unmarshal(bytes, &user)
+
+	err = storage.DataStorage.User.Update(id, &user)
+	if err != nil {
+		if err == storage.ErrDoesNotExist {
+			ctx.SetStatusCode(http.StatusNotFound)
+		} else {
+			ctx.SetStatusCode(http.StatusBadRequest)
 		}
+		return
+	}
 
-		params, err := url.ParseQuery(req.URL.RawQuery)
-		//  Parse fromDate parameter
-		fromDateStr := params.Get("fromDate")
-		fromDate := int64(0)
-
-		if fromDateStr != "" {
-			if fromDate, err = strconv.ParseInt(fromDateStr, 10, 64); err != nil {
-				http.Error(w, "", http.StatusBadRequest)
-				return nil
-			}
-		}
-
-		//  Parse toDate parameter
-		toDateStr := params.Get("toDate")
-		toDate := int64(math.MaxInt64)
-
-		if toDateStr != "" {
-			if toDate, err = strconv.ParseInt(toDateStr, 10, 64); err != nil {
-				http.Error(w, "", http.StatusBadRequest)
-				return nil
-			}
-		}
-
-		//  Parse country parameter
-		country := params.Get("country")
-
-		//  Parse toDistance parameter
-		toDistStr := params.Get("toDistance")
-		toDistance := int64(math.MaxInt32)
-
-		if toDistStr != "" {
-			if toDistance, err = strconv.ParseInt(toDistStr, 10, 64); err != nil {
-				http.Error(w, "", http.StatusBadRequest)
-				return nil
-			}
-		}
-
-		visits, ok := storage.DataStorage.VisitList.GetByUser(id, storage.DataStorage)
-		if !ok {
-			http.Error(w, "", http.StatusNotFound)
-			return nil
-		}
-
-		var resp (schema.ResponceUserVisits)
-		resp.Visits = []*schema.ResponceUserVisit{}
-		for _, visit := range visits {
-			if visit.LocationID == nil {
-				continue
-			}
-			location, ok := storage.DataStorage.Location.Get(*visit.LocationID)
-			if !ok {
-				continue
-			}
-			if fromDateStr != "" && fromDate > (*visit.VisitedAt) {
-				continue
-			}
-			if toDateStr != "" && toDate < (*visit.VisitedAt) {
-				continue
-			}
-			if country != "" && country != (*location.Country) {
-				continue
-			}
-			if toDistStr != "" && uint32(toDistance) <= (*location.Distance) {
-				continue
-			}
-			var item schema.ResponceUserVisit
-			item.Mark = visit.Mark
-			item.Visited_at = visit.VisitedAt
-			item.Place = location.Place
-			resp.Visits = append(resp.Visits, &item)
-		}
-
-		sort.Sort(&resp)
-		b, err := json.Marshal(resp)
-		w.Header().Add("Content-Type", "application/json")
-		w.Header().Add("Content-Length", strconv.Itoa(len(b)))
-		w.Write(b)
-
-		return nil
-	}, workers.TimeOut)
-
-	checkTimeout(w, err)
+	writeStr(ctx, "{}")
 }
 
-func UpdateUserEndpoint(w http.ResponseWriter, req *http.Request) {
-	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		id, err := parseID(req)
-		if err != nil {
-			http.Error(w, "", http.StatusNotFound)
-			return nil
+func CreateUserEndpoint(ctx *fasthttp.RequestCtx) {
+	var user model.User
+	_ = json.Unmarshal(ctx.PostBody(), &user)
+
+	err := storage.DataStorage.User.Add(&user)
+	if err != nil {
+		if err == storage.ErrDoesNotExist {
+			ctx.SetStatusCode(http.StatusNotFound)
+		} else {
+			ctx.SetStatusCode(http.StatusBadRequest)
 		}
+		return
+	}
 
-		bytes, err := ioutil.ReadAll(req.Body)
-		defer req.Body.Close()
-		if err != nil {
-			http.Error(w, "", http.StatusInternalServerError)
-			return nil
-		}
-
-		ok := CheckNull(bytes)
-		if ok {
-			http.Error(w, "", http.StatusBadRequest)
-			return nil
-		}
-		var user model.User
-		_ = json.Unmarshal(bytes, &user)
-
-		err = storage.DataStorage.User.Update(id, &user)
-		if err != nil {
-
-			if err == storage.ErrDoesNotExist {
-				http.Error(w, "", http.StatusNotFound)
-			} else {
-				http.Error(w, "", http.StatusBadRequest)
-			}
-			return nil
-		}
-
-		w.Write([]byte("{}"))
-		return nil
-	}, workers.TimeOut)
-
-	checkTimeout(w, err)
-}
-
-func CreateUserEndpoint(w http.ResponseWriter, req *http.Request) {
-	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		var user model.User
-		_ = json.NewDecoder(req.Body).Decode(&user)
-		defer req.Body.Close()
-
-		err := storage.DataStorage.User.Add(&user)
-		if err != nil {
-
-			if err == storage.ErrDoesNotExist {
-				http.Error(w, "", http.StatusNotFound)
-			} else {
-				http.Error(w, "", http.StatusBadRequest)
-			}
-			return nil
-		}
-
-		w.Write([]byte("{}"))
-		return nil
-	}, workers.TimeOut)
-
-	checkTimeout(w, err)
+	writeStr(ctx, "{}")
 }

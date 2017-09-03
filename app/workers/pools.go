@@ -88,5 +88,5 @@ func (p *Pool) runWorker() {
 	p.wg.Done()
 }
 
-var Wp = NewPool(3000)
+var Wp = NewPool(6000)
 var TimeOut (time.Duration) = 2 * time.Second

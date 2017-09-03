@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 
@@ -9,34 +8,35 @@ import (
 
 	"strings"
 
-	"github.com/golang/glog"
-	"github.com/gorilla/mux"
+	"encoding/json"
+
+	"github.com/valyala/fasthttp"
 )
 
-func NotFound(w http.ResponseWriter, req *http.Request) {
-	http.Error(w, "", http.StatusBadRequest)
+func writeObj(ctx *fasthttp.RequestCtx, obj interface{}) {
+	b, err := json.Marshal(obj)
+	if err != nil {
+		ctx.Error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+	ctx.Response.Header.Set("Content-Type", "application/json")
+	ctx.Response.Header.Set("Content-Length", strconv.Itoa(len(b)))
+	ctx.SetBody(b)
 }
 
-func checkTimeout(w http.ResponseWriter, err error) {
-	if err != nil {
-		glog.Errorln("Timeout")
-		http.Error(w, err.Error(), http.StatusGatewayTimeout)
-	}
+func writeStr(ctx *fasthttp.RequestCtx, s string) {
+	b := []byte(s)
+	ctx.Response.Header.Set("Content-Type", "application/json")
+	ctx.Response.Header.Set("Content-Length", strconv.Itoa(len(b)))
+	ctx.SetBody(b)
 }
 
-func parseID(req *http.Request) (uint32, error) {
-	errParse := errors.New("Could not parse Id from request")
-	vars := mux.Vars(req)
-	strID, ok := vars["id"]
-	if !ok {
-		return 0, errParse
-	}
-	id64, err := strconv.ParseInt(strID, 10, 32)
-	id := uint32(id64)
+func parseID(ctx *fasthttp.RequestCtx) (uint32, error) {
+	id, err := strconv.ParseUint(string(ctx.UserValue("id").(string)), 10, 32)
 	if err != nil {
-		return 0, errParse
+		return 0, err
 	}
-	return id, nil
+	return uint32(id), nil
 }
 
 func Round(val float64, roundOn float64, places int) (newVal float64) {

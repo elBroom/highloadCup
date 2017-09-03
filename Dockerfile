@@ -6,6 +6,7 @@ WORKDIR /go/src/github.com/elBroom/highloadCup
 ADD . .
 RUN go build -a -o app_ .
 EXPOSE 80
+ENV GOMAXPROCS=4
 CMD ["./app_"]
 
 # docker build -t elbroom/highloadcup .

@@ -5,97 +5,71 @@ import (
 
 	"encoding/json"
 
-	"io/ioutil"
-
 	"github.com/elBroom/highloadCup/app/model"
 	"github.com/elBroom/highloadCup/app/storage"
-	"github.com/elBroom/highloadCup/app/workers"
+	"github.com/valyala/fasthttp"
 )
 
-func GetVisitEndpoint(w http.ResponseWriter, req *http.Request) {
-	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		id, err := parseID(req)
-		if err != nil {
+func GetVisitEndpoint(ctx *fasthttp.RequestCtx) {
+	id, err := parseID(ctx)
+	if err != nil {
+		ctx.SetStatusCode(http.StatusNotFound)
+		return
+	}
 
-			http.Error(w, "", http.StatusNotFound)
-			return nil
-		}
+	visit, ok := storage.DataStorage.Visit.Get(id)
+	if !ok {
+		ctx.SetStatusCode(http.StatusNotFound)
+		return
+	}
 
-		visit, ok := storage.DataStorage.Visit.Get(id)
-		if !ok {
-			http.Error(w, "", http.StatusNotFound)
-			return nil
-		}
-
-		json.NewEncoder(w).Encode(visit)
-		return nil
-	}, workers.TimeOut)
-
-	checkTimeout(w, err)
+	writeObj(ctx, visit)
 }
 
-func UpdateVisitEndpoint(w http.ResponseWriter, req *http.Request) {
-	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		id, err := parseID(req)
-		if err != nil {
+func UpdateVisitEndpoint(ctx *fasthttp.RequestCtx) {
+	id, err := parseID(ctx)
+	if err != nil {
+		ctx.SetStatusCode(http.StatusNotFound)
+		return
+	}
 
-			http.Error(w, "", http.StatusNotFound)
-			return nil
+	bytes := ctx.PostBody()
+	ok := CheckNull(bytes)
+	if ok {
+		ctx.SetStatusCode(http.StatusBadRequest)
+		return
+	}
+	var visit model.Visit
+	_ = json.Unmarshal(bytes, &visit)
+
+	err = storage.DataStorage.Visit.Update(id, &visit, storage.DataStorage)
+	if err != nil {
+
+		if err == storage.ErrDoesNotExist {
+			ctx.SetStatusCode(http.StatusNotFound)
+		} else {
+			ctx.SetStatusCode(http.StatusBadRequest)
 		}
+		return
+	}
 
-		bytes, err := ioutil.ReadAll(req.Body)
-		defer req.Body.Close()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return nil
-		}
-
-		ok := CheckNull(bytes)
-		if ok {
-			http.Error(w, "", http.StatusBadRequest)
-			return nil
-		}
-		var visit model.Visit
-		_ = json.Unmarshal(bytes, &visit)
-
-		err = storage.DataStorage.Visit.Update(id, &visit, storage.DataStorage)
-		if err != nil {
-
-			if err == storage.ErrDoesNotExist {
-				http.Error(w, "", http.StatusNotFound)
-			} else {
-				http.Error(w, "", http.StatusBadRequest)
-			}
-			return nil
-		}
-
-		w.Write([]byte("{}"))
-		return nil
-	}, workers.TimeOut)
-
-	checkTimeout(w, err)
+	writeStr(ctx, "{}")
 }
 
-func CreateVisitEndpoint(w http.ResponseWriter, req *http.Request) {
-	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
-		var visit model.Visit
-		defer req.Body.Close()
-		_ = json.NewDecoder(req.Body).Decode(&visit)
+func CreateVisitEndpoint(ctx *fasthttp.RequestCtx) {
+	var visit model.Visit
+	_ = json.Unmarshal(ctx.PostBody(), &visit)
 
-		err := storage.DataStorage.Visit.Add(&visit, storage.DataStorage)
-		if err != nil {
+	err := storage.DataStorage.Visit.Add(&visit, storage.DataStorage)
+	if err != nil {
 
-			if err == storage.ErrDoesNotExist {
-				http.Error(w, "", http.StatusNotFound)
-			} else {
-				http.Error(w, "", http.StatusBadRequest)
-			}
-			return nil
+		if err == storage.ErrDoesNotExist {
+			ctx.SetStatusCode(http.StatusNotFound)
+		} else {
+			ctx.SetStatusCode(http.StatusBadRequest)
 		}
+		return
+	}
 
-		w.Write([]byte("{}"))
-		return nil
-	}, workers.TimeOut)
-
-	checkTimeout(w, err)
+	writeStr(ctx, "{}")
 }
