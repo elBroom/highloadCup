@@ -13,7 +13,7 @@ type Visit struct {
 
 func (v *Visit) Add(visit *model.Visit, st *Storage) error {
 	if visit.ID == nil || visit.LocationID == nil || visit.UserID == nil ||
-		visit.VisitedAt == nil || visit.Mark == nil {
+		visit.VisitedAt == nil || visit.Mark == nil || (*visit.Mark) < 0 {
 		return ErrRequiredFields
 	}
 	v.mx.Lock()
@@ -36,29 +36,28 @@ func (v *Visit) Update(id uint32, new_visit *model.Visit, st *Storage) error {
 
 	v.mx.Lock()
 	defer v.mx.Unlock()
-	old_visit, ok := v.visit[id]
+	visit, ok := v.visit[id]
 	if !ok {
 		return ErrDoesNotExist
 	}
 
-	isChangeLocation := new_visit.LocationID != nil && old_visit.LocationID != new_visit.LocationID
-	isChangeUser := new_visit.UserID != nil && old_visit.UserID != new_visit.UserID
-	if isChangeLocation || isChangeUser {
-		st.VisitList.Update(old_visit, new_visit)
-	}
+	old_visit := *visit
+	isChangeLocation := new_visit.LocationID != nil && (*visit.LocationID) != (*new_visit.LocationID)
+	isChangeUser := new_visit.UserID != nil && (*visit.UserID) != (*new_visit.UserID)
 	if isChangeLocation {
-		old_visit.Location = nil
-		old_visit.LocationID = new_visit.LocationID
+		visit.LocationID = new_visit.LocationID
 	}
 	if isChangeUser {
-		old_visit.User = nil
-		old_visit.UserID = new_visit.UserID
+		visit.UserID = new_visit.UserID
 	}
 	if new_visit.VisitedAt != nil {
-		old_visit.VisitedAt = new_visit.VisitedAt
+		visit.VisitedAt = new_visit.VisitedAt
 	}
-	if new_visit.Mark != nil {
-		old_visit.Mark = new_visit.Mark
+	if new_visit.Mark != nil && (*new_visit.Mark) >= 0 {
+		visit.Mark = new_visit.Mark
+	}
+	if isChangeLocation || isChangeUser {
+		st.VisitList.Update(&old_visit, visit)
 	}
 	return nil
 }
@@ -74,32 +73,4 @@ func (v *Visit) Get(id uint32) (*model.Visit, bool) {
 		return &visit_, ok
 	}
 	return nil, ok
-}
-
-func (v *Visit) FetchLocation(visit *model.Visit, st *Storage) bool {
-	v.mx.RLock()
-	defer v.mx.RUnlock()
-
-	if visit.Location == nil {
-		location, ok := st.Location.Get(*(visit.LocationID))
-		if ok {
-			visit.Location = location
-		}
-		return ok
-	}
-	return true
-}
-
-func (v *Visit) FetchUser(visit *model.Visit, st *Storage) bool {
-	v.mx.RLock()
-	defer v.mx.RUnlock()
-
-	if visit.User == nil {
-		user, ok := st.User.Get(*(visit.UserID))
-		if ok {
-			visit.User = user
-		}
-		return ok
-	}
-	return true
 }

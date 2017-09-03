@@ -35,41 +35,41 @@ func (vl *VisitList) Update(old_visit *model.Visit, new_visit *model.Visit) erro
 	vl.mx.Lock()
 	defer vl.mx.Unlock()
 
-	if new_visit.LocationID != nil && old_visit.LocationID != new_visit.LocationID {
-		// Delete old location
-		location_old, ok := vl.location[*(old_visit.LocationID)]
+	if new_visit.LocationID != nil && (*old_visit.LocationID) != (*new_visit.LocationID) {
+		// Delete visit from old location
+		visits, ok := vl.location[*(old_visit.LocationID)]
 		if ok {
-			for index, visit := range location_old {
-				if visit.ID == old_visit.ID {
-					location_old = append(location_old[:index], location_old[index+1:]...)
+			for index, visit := range visits {
+				if (*visit.ID) == (*old_visit.ID) {
+					vl.location[*(old_visit.LocationID)] = append(visits[:index], visits[index+1:]...)
 					break
 				}
 			}
 		}
-		// Add new location
-		location_new, ok := vl.location[*(new_visit.LocationID)]
+		// Add visit to new location
+		visits, ok = vl.location[*(new_visit.LocationID)]
 		if ok {
-			vl.location[*(new_visit.LocationID)] = append(location_new, new_visit)
+			vl.location[*(new_visit.LocationID)] = append(visits, new_visit)
 		} else {
 			vl.location[*(new_visit.LocationID)] = []*model.Visit{new_visit}
 		}
 	}
 
-	if new_visit.UserID != nil && old_visit.UserID != new_visit.UserID {
-		// Delete old user
-		user_old, ok := vl.user[*(old_visit.UserID)]
+	if new_visit.UserID != nil && (*old_visit.UserID) != (*new_visit.UserID) {
+		// Delete visit from old user
+		old_visits, ok := vl.user[*(old_visit.UserID)]
 		if ok {
-			for index, visit := range user_old {
-				if visit.ID == old_visit.ID {
-					user_old = append(user_old[:index], user_old[index+1:]...)
+			for index, visit := range old_visits {
+				if (*visit.ID) == (*old_visit.ID) {
+					vl.user[*(old_visit.UserID)] = append(old_visits[:index], old_visits[index+1:]...)
 					break
 				}
 			}
 		}
-		// Add old user
-		user_new, ok := vl.user[*(new_visit.UserID)]
+		// Add visit to new user
+		new_visits, ok := vl.user[*(new_visit.UserID)]
 		if ok {
-			vl.user[*(new_visit.UserID)] = append(user_new, new_visit)
+			vl.user[*(new_visit.UserID)] = append(new_visits, new_visit)
 		} else {
 			vl.user[*(new_visit.UserID)] = []*model.Visit{new_visit}
 		}
@@ -99,7 +99,6 @@ func (vl *VisitList) GetByUser(id uint32, st *Storage) ([]*model.Visit, bool) {
 	defer vl.mx.RUnlock()
 
 	visits, ok := vl.user[id]
-
 	if ok {
 		return visits, ok
 	}

@@ -114,32 +114,30 @@ func GetLocatioAvgnEndpoint(w http.ResponseWriter, req *http.Request) {
 			if visit.UserID == nil {
 				continue
 			}
-			ok := storage.DataStorage.Visit.FetchUser(visit, storage.DataStorage)
+			user, ok := storage.DataStorage.User.Get(*visit.UserID)
 			if !ok {
 				continue
 			}
-			if fromDateStr != "" && visit.VisitedAt != nil && fromDate >= (*visit.VisitedAt) {
+			if fromDateStr != "" && fromDate >= (*visit.VisitedAt) {
 				continue
 			}
-			if toDateStr != "" && visit.VisitedAt != nil && toDate <= (*visit.VisitedAt) {
+			if toDateStr != "" && toDate <= (*visit.VisitedAt) {
 				continue
 			}
 
-			if fromAgeStr != "" && visit.User.BirthDate != nil &&
-				time.Now().AddDate(-int(fromAge), 0, 0).Unix() <= (*visit.User.BirthDate) {
+			if fromAgeStr != "" &&
+				time.Now().AddDate(-int(fromAge), 0, 0).Unix() <= (*user.BirthDate) {
 				continue
 			}
-			if toAgeStr != "" && visit.User.BirthDate != nil &&
-				time.Now().AddDate(-int(toAge), 0, 0).Unix() >= (*visit.User.BirthDate) {
+			if toAgeStr != "" &&
+				time.Now().AddDate(-int(toAge), 0, 0).Unix() >= (*user.BirthDate) {
 				continue
 			}
-			if gender != "" && visit.User.Gender != nil && gender != (*visit.User.Gender) {
+			if gender != "" && gender != (*user.Gender) {
 				continue
 			}
-			if visit.Mark != nil {
-				count++
-				sum += int32(*visit.Mark)
-			}
+			count++
+			sum += int32(*visit.Mark)
 		}
 
 		var avg float64

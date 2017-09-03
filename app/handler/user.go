@@ -97,33 +97,35 @@ func VisitUserEndpoint(w http.ResponseWriter, req *http.Request) {
 			if visit.LocationID == nil {
 				continue
 			}
-			ok := storage.DataStorage.Visit.FetchLocation(visit, storage.DataStorage)
+			location, ok := storage.DataStorage.Location.Get(*visit.LocationID)
 			if !ok {
 				continue
 			}
-			if fromDateStr != "" && visit.VisitedAt != nil && fromDate > (*visit.VisitedAt) {
+			if fromDateStr != "" && fromDate > (*visit.VisitedAt) {
 				continue
 			}
-			if toDateStr != "" && visit.VisitedAt != nil && toDate < (*visit.VisitedAt) {
+			if toDateStr != "" && toDate < (*visit.VisitedAt) {
 				continue
 			}
-			if country != "" && visit.Location.Country != nil && country != (*visit.Location.Country) {
+			if country != "" && country != (*location.Country) {
 				continue
 			}
-			if toDistStr != "" && visit.Location.Distance != nil && uint32(toDistance) <= (*visit.Location.Distance) {
+			if toDistStr != "" && uint32(toDistance) <= (*location.Distance) {
 				continue
 			}
-			if visit.VisitedAt != nil {
-				var item schema.ResponceUserVisit
-				item.Mark = visit.Mark
-				item.Visited_at = visit.VisitedAt
-				item.Place = visit.Location.Place
-				resp.Visits = append(resp.Visits, &item)
-			}
+			var item schema.ResponceUserVisit
+			item.Mark = visit.Mark
+			item.Visited_at = visit.VisitedAt
+			item.Place = location.Place
+			resp.Visits = append(resp.Visits, &item)
 		}
 
 		sort.Sort(&resp)
-		json.NewEncoder(w).Encode(resp)
+		b, err := json.Marshal(resp)
+		w.Header().Add("Content-Type", "application/json")
+		w.Header().Add("Content-Length", strconv.Itoa(len(b)))
+		w.Write(b)
+
 		return nil
 	}, workers.TimeOut)
 
