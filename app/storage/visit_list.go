@@ -77,7 +77,7 @@ func (vl *VisitList) Update(old_visit *model.Visit, new_visit *model.Visit) erro
 	return nil
 }
 
-func (vl *VisitList) GetByLocation(id uint32) ([]*model.Visit, bool) {
+func (vl *VisitList) GetByLocation(id uint32, st *Storage) ([]*model.Visit, bool) {
 	vl.mx.RLock()
 	defer vl.mx.RUnlock()
 
@@ -86,10 +86,15 @@ func (vl *VisitList) GetByLocation(id uint32) ([]*model.Visit, bool) {
 	if ok {
 		return visits, ok
 	}
+
+	_, ok = st.Location.Get(id)
+	if ok {
+		return []*model.Visit{}, ok
+	}
 	return nil, ok
 }
 
-func (vl *VisitList) GetByUser(id uint32) ([]*model.Visit, bool) {
+func (vl *VisitList) GetByUser(id uint32, st *Storage) ([]*model.Visit, bool) {
 	vl.mx.RLock()
 	defer vl.mx.RUnlock()
 
@@ -97,6 +102,11 @@ func (vl *VisitList) GetByUser(id uint32) ([]*model.Visit, bool) {
 
 	if ok {
 		return visits, ok
+	}
+
+	_, ok = st.User.Get(id)
+	if ok {
+		return []*model.Visit{}, ok
 	}
 	return nil, ok
 }

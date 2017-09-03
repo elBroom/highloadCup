@@ -85,7 +85,7 @@ func VisitUserEndpoint(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		visits, ok := storage.DataStorage.VisitList.GetByUser(id)
+		visits, ok := storage.DataStorage.VisitList.GetByUser(id, storage.DataStorage)
 		if !ok {
 			http.Error(w, "", http.StatusNotFound)
 			return nil

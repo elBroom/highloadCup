@@ -46,13 +46,6 @@ func GetLocatioAvgnEndpoint(w http.ResponseWriter, req *http.Request) {
 	_, err := workers.Wp.AddTaskSyncTimed(func() interface{} {
 		id, err := parseID(req)
 		if err != nil {
-
-			http.Error(w, "", http.StatusNotFound)
-			return nil
-		}
-
-		visits, _ := storage.DataStorage.VisitList.GetByLocation(id)
-		if visits == nil {
 			http.Error(w, "", http.StatusNotFound)
 			return nil
 		}
@@ -102,8 +95,18 @@ func GetLocatioAvgnEndpoint(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		//  Parse country parameter
+		//  Parse gender parameter
 		gender := params.Get("gender")
+		if gender != "" && gender != "m" && gender != "f" {
+			http.Error(w, "", http.StatusBadRequest)
+			return nil
+		}
+
+		visits, ok := storage.DataStorage.VisitList.GetByLocation(id, storage.DataStorage)
+		if !ok {
+			http.Error(w, "", http.StatusNotFound)
+			return nil
+		}
 
 		var sum int32
 		var count int32
