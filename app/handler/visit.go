@@ -3,10 +3,9 @@ package handler
 import (
 	"net/http"
 
-	"encoding/json"
-
 	"github.com/elBroom/highloadCup/app/model"
 	"github.com/elBroom/highloadCup/app/storage"
+	"github.com/pquerna/ffjson/ffjson"
 	"github.com/valyala/fasthttp"
 )
 
@@ -40,7 +39,7 @@ func UpdateVisitEndpoint(ctx *fasthttp.RequestCtx) {
 		return
 	}
 	var visit model.Visit
-	_ = json.Unmarshal(bytes, &visit)
+	_ = ffjson.Unmarshal(bytes, &visit)
 
 	err = storage.DataStorage.Visit.Update(id, &visit, storage.DataStorage)
 	if err != nil {
@@ -58,7 +57,7 @@ func UpdateVisitEndpoint(ctx *fasthttp.RequestCtx) {
 
 func CreateVisitEndpoint(ctx *fasthttp.RequestCtx) {
 	var visit model.Visit
-	_ = json.Unmarshal(ctx.PostBody(), &visit)
+	_ = ffjson.Unmarshal(ctx.PostBody(), &visit)
 
 	err := storage.DataStorage.Visit.Add(&visit, storage.DataStorage)
 	if err != nil {

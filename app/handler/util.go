@@ -8,19 +8,19 @@ import (
 
 	"strings"
 
-	"encoding/json"
-
+	"github.com/pquerna/ffjson/ffjson"
 	"github.com/valyala/fasthttp"
 )
 
 func writeObj(ctx *fasthttp.RequestCtx, obj interface{}) {
-	b, err := json.Marshal(obj)
+	b, err := ffjson.Marshal(obj)
 	if err != nil {
 		ctx.Error(err.Error(), http.StatusInternalServerError)
 		return
 	}
 	ctx.Response.Header.Set("Content-Type", "application/json")
 	ctx.Response.Header.Set("Content-Length", strconv.Itoa(len(b)))
+	ctx.Response.Header.Set("Connection", "keep-alive")
 	ctx.SetBody(b)
 }
 
@@ -28,6 +28,7 @@ func writeStr(ctx *fasthttp.RequestCtx, s string) {
 	b := []byte(s)
 	ctx.Response.Header.Set("Content-Type", "application/json")
 	ctx.Response.Header.Set("Content-Length", strconv.Itoa(len(b)))
+	ctx.Response.Header.Set("Connection", "keep-alive")
 	ctx.SetBody(b)
 }
 
