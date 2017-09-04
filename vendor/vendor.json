@@ -39,6 +39,30 @@
 			"revisionTime": "2017-07-28T05:55:34Z"
 		},
 		{
+			"checksumSHA1": "jQv+QXGIG0pcUiZZcoWlL2DYYyQ=",
+			"path": "github.com/mailru/easyjson",
+			"revision": "2a92e673c9a6302dd05c3a691ae1f24aef46457d",
+			"revisionTime": "2017-09-02T15:12:37Z"
+		},
+		{
+			"checksumSHA1": "T8soMJArSZrYnhmdpAnq1bVxQ6Q=",
+			"path": "github.com/mailru/easyjson/buffer",
+			"revision": "2a92e673c9a6302dd05c3a691ae1f24aef46457d",
+			"revisionTime": "2017-09-02T15:12:37Z"
+		},
+		{
+			"checksumSHA1": "Xw5HIdQ2vlr5wkKl+8ANM9xp5Zs=",
+			"path": "github.com/mailru/easyjson/jlexer",
+			"revision": "2a92e673c9a6302dd05c3a691ae1f24aef46457d",
+			"revisionTime": "2017-09-02T15:12:37Z"
+		},
+		{
+			"checksumSHA1": "tMeVsfYgDW9K0spDZkOBlvZYssw=",
+			"path": "github.com/mailru/easyjson/jwriter",
+			"revision": "2a92e673c9a6302dd05c3a691ae1f24aef46457d",
+			"revisionTime": "2017-09-02T15:12:37Z"
+		},
+		{
 			"checksumSHA1": "KW3yR7Y48COGUWuq3t2Qj1L2zMI=",
 			"path": "github.com/pquerna/ffjson",
 			"revision": "9a5203b7a07166f217f5f8177d5b16177acad3b2",

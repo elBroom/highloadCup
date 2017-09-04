@@ -8,7 +8,7 @@ import (
 	"github.com/elBroom/highloadCup/app/model"
 	"github.com/elBroom/highloadCup/app/schema"
 	"github.com/elBroom/highloadCup/app/storage"
-	"github.com/pquerna/ffjson/ffjson"
+	"github.com/mailru/easyjson"
 	"github.com/valyala/fasthttp"
 )
 
@@ -133,7 +133,7 @@ func UpdateUserEndpoint(ctx *fasthttp.RequestCtx) {
 		return
 	}
 	var user model.User
-	_ = ffjson.Unmarshal(bytes, &user)
+	_ = easyjson.Unmarshal(bytes, &user)
 
 	err = storage.DataStorage.User.Update(id, &user)
 	if err != nil {
@@ -150,7 +150,7 @@ func UpdateUserEndpoint(ctx *fasthttp.RequestCtx) {
 
 func CreateUserEndpoint(ctx *fasthttp.RequestCtx) {
 	var user model.User
-	_ = ffjson.Unmarshal(ctx.PostBody(), &user)
+	_ = easyjson.Unmarshal(ctx.PostBody(), &user)
 
 	err := storage.DataStorage.User.Add(&user)
 	if err != nil {

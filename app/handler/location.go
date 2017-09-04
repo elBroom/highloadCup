@@ -9,7 +9,7 @@ import (
 
 	"github.com/elBroom/highloadCup/app/model"
 	"github.com/elBroom/highloadCup/app/storage"
-	"github.com/pquerna/ffjson/ffjson"
+	"github.com/mailru/easyjson"
 	"github.com/valyala/fasthttp"
 )
 
@@ -153,7 +153,7 @@ func UpdateLocationEndpoint(ctx *fasthttp.RequestCtx) {
 		return
 	}
 	var location model.Location
-	_ = ffjson.Unmarshal(bytes, &location)
+	_ = easyjson.Unmarshal(bytes, &location)
 
 	err = storage.DataStorage.Location.Update(id, &location)
 	if err != nil {
@@ -169,7 +169,7 @@ func UpdateLocationEndpoint(ctx *fasthttp.RequestCtx) {
 
 func CreateLocationEndpoint(ctx *fasthttp.RequestCtx) {
 	var location model.Location
-	_ = ffjson.Unmarshal(ctx.PostBody(), &location)
+	_ = easyjson.Unmarshal(ctx.PostBody(), &location)
 
 	err := storage.DataStorage.Location.Add(&location)
 	if err != nil {

@@ -8,12 +8,12 @@ import (
 
 	"strings"
 
-	"github.com/pquerna/ffjson/ffjson"
+	"github.com/mailru/easyjson"
 	"github.com/valyala/fasthttp"
 )
 
-func writeObj(ctx *fasthttp.RequestCtx, obj interface{}) {
-	b, err := ffjson.Marshal(obj)
+func writeObj(ctx *fasthttp.RequestCtx, obj easyjson.Marshaler) {
+	b, err := easyjson.Marshal(obj)
 	if err != nil {
 		ctx.Error(err.Error(), http.StatusInternalServerError)
 		return
