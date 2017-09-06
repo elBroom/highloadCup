@@ -3,12 +3,11 @@ package router
 import (
 	"strconv"
 
+	"github.com/elBroom/highloadCup/app"
 	"github.com/elBroom/highloadCup/app/handler"
-	"github.com/golang/glog"
 	"github.com/valyala/fasthttp"
 )
 
-var Phase = 1
 var isLastGet = true
 
 func RequestHandler() fasthttp.RequestHandler {
@@ -16,9 +15,8 @@ func RequestHandler() fasthttp.RequestHandler {
 		path := ctx.Path()
 		if ctx.IsGet() {
 			if !isLastGet {
-				Phase++
+				app.Phase++
 				isLastGet = true
-				glog.Infof("Phase: %d", Phase)
 			}
 			if matchGetUser(path) > 0 {
 				// /users/:id
@@ -58,9 +56,8 @@ func RequestHandler() fasthttp.RequestHandler {
 			}
 		} else if ctx.IsPost() {
 			if isLastGet {
-				Phase++
+				app.Phase++
 				isLastGet = false
-				glog.Infof("Phase: %d", Phase)
 			}
 			if matchCreateUser(path) > 0 {
 				// /users/new

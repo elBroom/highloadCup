@@ -58,8 +58,8 @@ func (u *User) Update(id uint32, new_user *model.User) error {
 
 // Return copy
 func (u *User) Get(id uint32) (*model.User, bool) {
-	u.mx.RLock()
-	defer u.mx.RUnlock()
+	//u.mx.RLock()
+	//defer u.mx.RUnlock()
 
 	user, ok := u.user[id]
 

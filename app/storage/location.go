@@ -54,8 +54,8 @@ func (l *Location) Update(id uint32, new_location *model.Location) error {
 }
 
 func (l *Location) Get(id uint32) (*model.Location, bool) {
-	l.mx.RLock()
-	defer l.mx.RUnlock()
+	//l.mx.RLock()
+	//defer l.mx.RUnlock()
 
 	location, ok := l.location[id]
 

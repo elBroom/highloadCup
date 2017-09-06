@@ -63,8 +63,8 @@ func (v *Visit) Update(id uint32, new_visit *model.Visit, st *Storage) error {
 }
 
 func (v *Visit) Get(id uint32) (*model.Visit, bool) {
-	v.mx.RLock()
-	defer v.mx.RUnlock()
+	//v.mx.RLock()
+	//defer v.mx.RUnlock()
 
 	visit, ok := v.visit[id]
 
