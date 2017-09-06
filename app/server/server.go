@@ -6,7 +6,7 @@ import (
 )
 
 func RunHTTPServer(addr string) error {
-	router := router.Routing()
+	//router := router.Routing()
 
-	return fasthttp.ListenAndServe(addr, router.Handler)
+	return fasthttp.ListenAndServe(addr, router.RequestHandler())
 }

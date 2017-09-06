@@ -12,13 +12,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func GetUserEndpoint(ctx *fasthttp.RequestCtx) {
-	id, err := parseID(ctx)
-	if err != nil {
-		ctx.SetStatusCode(http.StatusNotFound)
-		return
-	}
-
+func GetUserEndpoint(ctx *fasthttp.RequestCtx, id uint32) {
 	user, ok := storage.DataStorage.User.Get(id)
 	if !ok {
 		ctx.SetStatusCode(http.StatusNotFound)
@@ -28,13 +22,7 @@ func GetUserEndpoint(ctx *fasthttp.RequestCtx) {
 	writeObj(ctx, user)
 }
 
-func VisitUserEndpoint(ctx *fasthttp.RequestCtx) {
-	id, err := parseID(ctx)
-	if err != nil {
-		ctx.SetStatusCode(http.StatusNotFound)
-		return
-	}
-
+func VisitUserEndpoint(ctx *fasthttp.RequestCtx, id uint32) {
 	params := ctx.QueryArgs()
 
 	//  Parse fromDate parameter
@@ -119,13 +107,7 @@ func VisitUserEndpoint(ctx *fasthttp.RequestCtx) {
 	writeObj(ctx, resp)
 }
 
-func UpdateUserEndpoint(ctx *fasthttp.RequestCtx) {
-	id, err := parseID(ctx)
-	if err != nil {
-		ctx.SetStatusCode(http.StatusNotFound)
-		return
-	}
-
+func UpdateUserEndpoint(ctx *fasthttp.RequestCtx, id uint32) {
 	bytes := ctx.PostBody()
 	ok := CheckNull(bytes)
 	if ok {
@@ -135,7 +117,7 @@ func UpdateUserEndpoint(ctx *fasthttp.RequestCtx) {
 	var user model.User
 	_ = easyjson.Unmarshal(bytes, &user)
 
-	err = storage.DataStorage.User.Update(id, &user)
+	err := storage.DataStorage.User.Update(id, &user)
 	if err != nil {
 		if err == storage.ErrDoesNotExist {
 			ctx.SetStatusCode(http.StatusNotFound)

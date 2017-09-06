@@ -9,13 +9,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func GetVisitEndpoint(ctx *fasthttp.RequestCtx) {
-	id, err := parseID(ctx)
-	if err != nil {
-		ctx.SetStatusCode(http.StatusNotFound)
-		return
-	}
-
+func GetVisitEndpoint(ctx *fasthttp.RequestCtx, id uint32) {
 	visit, ok := storage.DataStorage.Visit.Get(id)
 	if !ok {
 		ctx.SetStatusCode(http.StatusNotFound)
@@ -25,13 +19,7 @@ func GetVisitEndpoint(ctx *fasthttp.RequestCtx) {
 	writeObj(ctx, visit)
 }
 
-func UpdateVisitEndpoint(ctx *fasthttp.RequestCtx) {
-	id, err := parseID(ctx)
-	if err != nil {
-		ctx.SetStatusCode(http.StatusNotFound)
-		return
-	}
-
+func UpdateVisitEndpoint(ctx *fasthttp.RequestCtx, id uint32) {
 	bytes := ctx.PostBody()
 	ok := CheckNull(bytes)
 	if ok {
@@ -41,7 +29,7 @@ func UpdateVisitEndpoint(ctx *fasthttp.RequestCtx) {
 	var visit model.Visit
 	_ = easyjson.Unmarshal(bytes, &visit)
 
-	err = storage.DataStorage.Visit.Update(id, &visit, storage.DataStorage)
+	err := storage.DataStorage.Visit.Update(id, &visit, storage.DataStorage)
 	if err != nil {
 
 		if err == storage.ErrDoesNotExist {

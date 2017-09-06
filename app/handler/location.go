@@ -13,13 +13,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func GetLocationEndpoint(ctx *fasthttp.RequestCtx) {
-	id, err := parseID(ctx)
-	if err != nil {
-		ctx.SetStatusCode(http.StatusNotFound)
-		return
-	}
-
+func GetLocationEndpoint(ctx *fasthttp.RequestCtx, id uint32) {
 	location, ok := storage.DataStorage.Location.Get(id)
 	if !ok {
 		ctx.SetStatusCode(http.StatusNotFound)
@@ -29,14 +23,9 @@ func GetLocationEndpoint(ctx *fasthttp.RequestCtx) {
 	writeObj(ctx, location)
 }
 
-func GetLocatioAvgnEndpoint(ctx *fasthttp.RequestCtx) {
-	id, err := parseID(ctx)
-	if err != nil {
-		ctx.SetStatusCode(http.StatusNotFound)
-		return
-	}
-
+func GetLocatioAvgEndpoint(ctx *fasthttp.RequestCtx, id uint32) {
 	params := ctx.QueryArgs()
+	now := time.Now()
 
 	//  Parse fromDate parameter
 	var fromDate int64
@@ -116,11 +105,11 @@ func GetLocatioAvgnEndpoint(ctx *fasthttp.RequestCtx) {
 		}
 
 		if params.Has("fromAge") &&
-			time.Now().AddDate(-int(fromAge), 0, 0).Unix() <= (*user.BirthDate) {
+			now.AddDate(-int(fromAge), 0, 0).Unix() <= (*user.BirthDate) {
 			continue
 		}
 		if params.Has("toAge") &&
-			time.Now().AddDate(-int(toAge), 0, 0).Unix() >= (*user.BirthDate) {
+			now.AddDate(-int(toAge), 0, 0).Unix() >= (*user.BirthDate) {
 			continue
 		}
 		if params.Has("gender") && gender != (*user.Gender) {
@@ -139,13 +128,7 @@ func GetLocatioAvgnEndpoint(ctx *fasthttp.RequestCtx) {
 	writeStr(ctx, answ)
 }
 
-func UpdateLocationEndpoint(ctx *fasthttp.RequestCtx) {
-	id, err := parseID(ctx)
-	if err != nil {
-		ctx.SetStatusCode(http.StatusNotFound)
-		return
-	}
-
+func UpdateLocationEndpoint(ctx *fasthttp.RequestCtx, id uint32) {
 	bytes := ctx.PostBody()
 	ok := CheckNull(bytes)
 	if ok {
@@ -155,7 +138,7 @@ func UpdateLocationEndpoint(ctx *fasthttp.RequestCtx) {
 	var location model.Location
 	_ = easyjson.Unmarshal(bytes, &location)
 
-	err = storage.DataStorage.Location.Update(id, &location)
+	err := storage.DataStorage.Location.Update(id, &location)
 	if err != nil {
 		if err == storage.ErrDoesNotExist {
 			ctx.SetStatusCode(http.StatusNotFound)

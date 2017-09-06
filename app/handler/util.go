@@ -32,14 +32,6 @@ func writeStr(ctx *fasthttp.RequestCtx, s string) {
 	ctx.SetBody(b)
 }
 
-func parseID(ctx *fasthttp.RequestCtx) (uint32, error) {
-	id, err := strconv.ParseUint(string(ctx.UserValue("id").(string)), 10, 32)
-	if err != nil {
-		return 0, err
-	}
-	return uint32(id), nil
-}
-
 func Round(val float64, roundOn float64, places int) (newVal float64) {
 	var round float64
 	pow := math.Pow(10, float64(places))
