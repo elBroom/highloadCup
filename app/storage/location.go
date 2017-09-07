@@ -24,6 +24,7 @@ func (l *Location) Add(location *model.Location) error {
 		return ErrAlreadyExist
 	}
 	l.location[*(location.ID)] = location
+	DataStorage.VisitList.AddEmptyForLocation(*(location.ID))
 	return nil
 }
 
@@ -58,10 +59,5 @@ func (l *Location) Get(id uint32) (*model.Location, bool) {
 	//defer l.mx.RUnlock()
 
 	location, ok := l.location[id]
-
-	if ok {
-		location_ := *location
-		return &location_, ok
-	}
-	return nil, ok
+	return location, ok
 }

@@ -109,7 +109,7 @@ func importVisits(b []byte, store *storage.Storage) error {
 
 	for _, visit := range visits.Visits {
 		visit_ := visit
-		store.Visit.Add(&visit_, store)
+		store.Visit.Add(&visit_)
 	}
 	return nil
 }

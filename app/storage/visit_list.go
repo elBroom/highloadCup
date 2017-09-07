@@ -31,6 +31,26 @@ func (vl *VisitList) Add(visit *model.Visit) error {
 	return nil
 }
 
+func (vl *VisitList) AddEmptyForLocation(id uint32) {
+	vl.mx.Lock()
+	defer vl.mx.Unlock()
+
+	_, ok := vl.location[id]
+	if !ok {
+		vl.location[id] = []*model.Visit{}
+	}
+}
+
+func (vl *VisitList) AddEmptyForUser(id uint32) {
+	vl.mx.Lock()
+	defer vl.mx.Unlock()
+
+	_, ok := vl.user[id]
+	if !ok {
+		vl.user[id] = []*model.Visit{}
+	}
+}
+
 func (vl *VisitList) Update(old_visit *model.Visit, new_visit *model.Visit) error {
 	vl.mx.Lock()
 	defer vl.mx.Unlock()
@@ -77,35 +97,18 @@ func (vl *VisitList) Update(old_visit *model.Visit, new_visit *model.Visit) erro
 	return nil
 }
 
-func (vl *VisitList) GetByLocation(id uint32, st *Storage) ([]*model.Visit, bool) {
+func (vl *VisitList) GetByLocation(id uint32) ([]*model.Visit, bool) {
 	//vl.mx.RLock()
 	//defer vl.mx.RUnlock()
 
 	visits, ok := vl.location[id]
-
-	if ok {
-		return visits, ok
-	}
-
-	_, ok = st.Location.Get(id)
-	if ok {
-		return []*model.Visit{}, ok
-	}
-	return nil, ok
+	return visits, ok
 }
 
-func (vl *VisitList) GetByUser(id uint32, st *Storage) ([]*model.Visit, bool) {
+func (vl *VisitList) GetByUser(id uint32) ([]*model.Visit, bool) {
 	//vl.mx.RLock()
 	//defer vl.mx.RUnlock()
 
 	visits, ok := vl.user[id]
-	if ok {
-		return visits, ok
-	}
-
-	_, ok = st.User.Get(id)
-	if ok {
-		return []*model.Visit{}, ok
-	}
-	return nil, ok
+	return visits, ok
 }

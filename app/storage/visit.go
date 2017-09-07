@@ -11,7 +11,7 @@ type Visit struct {
 	visit map[uint32]*model.Visit
 }
 
-func (v *Visit) Add(visit *model.Visit, st *Storage) error {
+func (v *Visit) Add(visit *model.Visit) error {
 	if visit.ID == nil || visit.LocationID == nil || visit.UserID == nil ||
 		visit.VisitedAt == nil || visit.Mark == nil || (*visit.Mark) < 0 {
 		return ErrRequiredFields
@@ -25,11 +25,11 @@ func (v *Visit) Add(visit *model.Visit, st *Storage) error {
 
 	v.visit[*(visit.ID)] = visit
 
-	st.VisitList.Add(visit)
+	DataStorage.VisitList.Add(visit)
 	return nil
 }
 
-func (v *Visit) Update(id uint32, new_visit *model.Visit, st *Storage) error {
+func (v *Visit) Update(id uint32, new_visit *model.Visit) error {
 	if new_visit.ID != nil {
 		return ErrIDInUpdate
 	}
@@ -57,7 +57,7 @@ func (v *Visit) Update(id uint32, new_visit *model.Visit, st *Storage) error {
 		visit.Mark = new_visit.Mark
 	}
 	if isChangeLocation || isChangeUser {
-		st.VisitList.Update(&old_visit, visit)
+		DataStorage.VisitList.Update(&old_visit, visit)
 	}
 	return nil
 }
@@ -67,10 +67,5 @@ func (v *Visit) Get(id uint32) (*model.Visit, bool) {
 	//defer v.mx.RUnlock()
 
 	visit, ok := v.visit[id]
-
-	if ok {
-		visit_ := *visit
-		return &visit_, ok
-	}
-	return nil, ok
+	return visit, ok
 }

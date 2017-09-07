@@ -24,6 +24,7 @@ func (u *User) Add(user *model.User) error {
 		return ErrAlreadyExist
 	}
 	u.user[*(user.ID)] = user
+	DataStorage.VisitList.AddEmptyForUser(*(user.ID))
 	return nil
 }
 
@@ -62,10 +63,5 @@ func (u *User) Get(id uint32) (*model.User, bool) {
 	//defer u.mx.RUnlock()
 
 	user, ok := u.user[id]
-
-	if ok {
-		user_ := *user
-		return &user_, ok
-	}
-	return nil, ok
+	return user, ok
 }

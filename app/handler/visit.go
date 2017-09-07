@@ -29,7 +29,7 @@ func UpdateVisitEndpoint(ctx *fasthttp.RequestCtx, id uint32) {
 	var visit model.Visit
 	_ = easyjson.Unmarshal(bytes, &visit)
 
-	err := storage.DataStorage.Visit.Update(id, &visit, storage.DataStorage)
+	err := storage.DataStorage.Visit.Update(id, &visit)
 	if err != nil {
 
 		if err == storage.ErrDoesNotExist {
@@ -47,7 +47,7 @@ func CreateVisitEndpoint(ctx *fasthttp.RequestCtx) {
 	var visit model.Visit
 	_ = easyjson.Unmarshal(ctx.PostBody(), &visit)
 
-	err := storage.DataStorage.Visit.Add(&visit, storage.DataStorage)
+	err := storage.DataStorage.Visit.Add(&visit)
 	if err != nil {
 
 		if err == storage.ErrDoesNotExist {

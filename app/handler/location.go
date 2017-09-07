@@ -81,7 +81,7 @@ func GetLocatioAvgEndpoint(ctx *fasthttp.RequestCtx, id uint32) {
 		}
 	}
 
-	visits, ok := storage.DataStorage.VisitList.GetByLocation(id, storage.DataStorage)
+	visits, ok := storage.DataStorage.VisitList.GetByLocation(id)
 	if !ok {
 		ctx.SetStatusCode(http.StatusNotFound)
 		return
