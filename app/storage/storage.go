@@ -6,9 +6,9 @@ import (
 	"github.com/elBroom/highloadCup/app/model"
 )
 
-const countUser = 1000074
-const countLocation = 1000074
-const countVisit = 10000460
+const CountUser = 1100000
+const CountLocation = 1100000
+const CountVisit = 11000000
 
 var (
 	ErrRequiredFields = errors.New("Not all required fields are filled")
@@ -27,12 +27,12 @@ type Storage struct {
 
 func NewStorage() *Storage {
 	return &Storage{
-		User:     &User{user: make(map[uint32]*model.User, countUser)},
-		Location: &Location{location: make(map[uint32]*model.Location, countLocation)},
-		Visit:    &Visit{visit: make(map[uint32]*model.Visit, countVisit)},
+		User:     &User{user: [CountUser]*model.User{}},
+		Location: &Location{location: [CountLocation]*model.Location{}},
+		Visit:    &Visit{visit: [CountVisit]*model.Visit{}},
 		VisitList: &VisitList{
-			user:     make(map[uint32]([]*model.Visit), countUser),
-			location: make(map[uint32]([]*model.Visit), countLocation),
+			user:     [CountUser]([]*model.Visit){},
+			location: [CountLocation]([]*model.Visit){},
 		},
 	}
 }

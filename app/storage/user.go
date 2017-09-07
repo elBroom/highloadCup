@@ -3,12 +3,14 @@ package storage
 import (
 	"sync"
 
+	"log"
+
 	"github.com/elBroom/highloadCup/app/model"
 )
 
 type User struct {
 	mx   sync.RWMutex
-	user map[uint32]*model.User
+	user [CountUser]*model.User
 }
 
 func (u *User) Add(user *model.User) error {
@@ -17,10 +19,15 @@ func (u *User) Add(user *model.User) error {
 		return ErrRequiredFields
 	}
 
+	if *(user.ID) > CountUser {
+		log.Printf("Big index user: %d", *(user.ID))
+		return nil
+	}
+
 	u.mx.Lock()
 	defer u.mx.Unlock()
-	_, ok := u.user[*(user.ID)]
-	if ok {
+	val := u.user[*(user.ID)]
+	if val != nil {
 		return ErrAlreadyExist
 	}
 	u.user[*(user.ID)] = user
@@ -35,8 +42,8 @@ func (u *User) Update(id uint32, new_user *model.User) error {
 
 	u.mx.Lock()
 	defer u.mx.Unlock()
-	user, ok := u.user[id]
-	if !ok {
+	user := u.user[id]
+	if user == nil {
 		return ErrDoesNotExist
 	}
 	if new_user.BirthDate != nil {
@@ -62,6 +69,6 @@ func (u *User) Get(id uint32) (*model.User, bool) {
 	//u.mx.RLock()
 	//defer u.mx.RUnlock()
 
-	user, ok := u.user[id]
-	return user, ok
+	user := u.user[id]
+	return user, user != nil
 }

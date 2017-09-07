@@ -3,12 +3,14 @@ package storage
 import (
 	"sync"
 
+	"log"
+
 	"github.com/elBroom/highloadCup/app/model"
 )
 
 type Location struct {
 	mx       sync.RWMutex
-	location map[uint32]*model.Location
+	location [CountLocation]*model.Location
 }
 
 func (l *Location) Add(location *model.Location) error {
@@ -17,10 +19,15 @@ func (l *Location) Add(location *model.Location) error {
 		return ErrRequiredFields
 	}
 
+	if *(location.ID) > CountLocation {
+		log.Printf("Big index location: %d", *(location.ID))
+		return nil
+	}
+
 	l.mx.Lock()
 	defer l.mx.Unlock()
-	_, ok := l.location[*(location.ID)]
-	if ok {
+	val := l.location[*(location.ID)]
+	if val != nil {
 		return ErrAlreadyExist
 	}
 	l.location[*(location.ID)] = location
@@ -35,8 +42,8 @@ func (l *Location) Update(id uint32, new_location *model.Location) error {
 
 	l.mx.Lock()
 	defer l.mx.Unlock()
-	location, ok := l.location[id]
-	if !ok {
+	location := l.location[id]
+	if location == nil {
 		return ErrDoesNotExist
 	}
 	if new_location.Place != nil {
@@ -58,6 +65,6 @@ func (l *Location) Get(id uint32) (*model.Location, bool) {
 	//l.mx.RLock()
 	//defer l.mx.RUnlock()
 
-	location, ok := l.location[id]
-	return location, ok
+	location := l.location[id]
+	return location, location != nil
 }

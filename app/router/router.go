@@ -5,6 +5,7 @@ import (
 
 	"github.com/elBroom/highloadCup/app"
 	"github.com/elBroom/highloadCup/app/handler"
+	"github.com/elBroom/highloadCup/app/storage"
 	"github.com/valyala/fasthttp"
 )
 
@@ -21,35 +22,35 @@ func RequestHandler() fasthttp.RequestHandler {
 			if matchGetUser(path) > 0 {
 				// /users/:id
 				id, err := parseID(path[7:])
-				if err == nil {
+				if id <= storage.CountUser && err == nil {
 					handler.GetUserEndpoint(ctx, id)
 					return
 				}
 			} else if matchGetLocation(path) > 0 {
 				// /locations/:id
 				id, err := parseID(path[11:])
-				if err == nil {
+				if id <= storage.CountLocation && err == nil {
 					handler.GetLocationEndpoint(ctx, id)
 					return
 				}
 			} else if matchGetVisit(path) > 0 {
 				// /visits/:id
 				id, err := parseID(path[8:])
-				if err == nil {
+				if id <= storage.CountVisit && err == nil {
 					handler.GetVisitEndpoint(ctx, id)
 					return
 				}
 			} else if matchLocationAvg(path) > 0 {
 				// /locations/:id/avg
 				id, err := parseID(path[11 : len(path)-4])
-				if err == nil {
+				if id <= storage.CountLocation && err == nil {
 					handler.GetLocatioAvgEndpoint(ctx, id)
 					return
 				}
 			} else if matchVisitUser(path) > 0 {
 				// /users/:id/visits
 				id, err := parseID(path[7 : len(path)-7])
-				if err == nil {
+				if id <= storage.CountUser && err == nil {
 					handler.VisitUserEndpoint(ctx, id)
 					return
 				}
@@ -74,21 +75,21 @@ func RequestHandler() fasthttp.RequestHandler {
 			} else if matchUpdateUser(path) > 0 {
 				// /users/:id
 				id, err := parseID(path[7:])
-				if err == nil {
+				if id <= storage.CountUser && err == nil {
 					handler.UpdateUserEndpoint(ctx, id)
 					return
 				}
 			} else if matchUpdateLocation(path) > 0 {
 				// /locations/:id
 				id, err := parseID(path[11:])
-				if err == nil {
+				if id <= storage.CountLocation && err == nil {
 					handler.UpdateLocationEndpoint(ctx, id)
 					return
 				}
 			} else if matchUpdateVisit(path) > 0 {
 				// /visits/:id
 				id, err := parseID(path[8:])
-				if err == nil {
+				if id <= storage.CountVisit && err == nil {
 					handler.UpdateVisitEndpoint(ctx, id)
 					return
 				}

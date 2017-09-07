@@ -3,12 +3,14 @@ package storage
 import (
 	"sync"
 
+	"log"
+
 	"github.com/elBroom/highloadCup/app/model"
 )
 
 type Visit struct {
 	mx    sync.RWMutex
-	visit map[uint32]*model.Visit
+	visit [CountVisit]*model.Visit
 }
 
 func (v *Visit) Add(visit *model.Visit) error {
@@ -16,10 +18,16 @@ func (v *Visit) Add(visit *model.Visit) error {
 		visit.VisitedAt == nil || visit.Mark == nil || (*visit.Mark) < 0 {
 		return ErrRequiredFields
 	}
+
+	if *(visit.ID) > CountVisit {
+		log.Printf("Big index visit: %d", *(visit.ID))
+		return nil
+	}
+
 	v.mx.Lock()
 	defer v.mx.Unlock()
-	_, ok := v.visit[*(visit.ID)]
-	if ok {
+	val := v.visit[*(visit.ID)]
+	if val != nil {
 		return ErrAlreadyExist
 	}
 
@@ -36,8 +44,8 @@ func (v *Visit) Update(id uint32, new_visit *model.Visit) error {
 
 	v.mx.Lock()
 	defer v.mx.Unlock()
-	visit, ok := v.visit[id]
-	if !ok {
+	visit := v.visit[id]
+	if visit == nil {
 		return ErrDoesNotExist
 	}
 
@@ -66,6 +74,6 @@ func (v *Visit) Get(id uint32) (*model.Visit, bool) {
 	//v.mx.RLock()
 	//defer v.mx.RUnlock()
 
-	visit, ok := v.visit[id]
-	return visit, ok
+	visit := v.visit[id]
+	return visit, visit != nil
 }

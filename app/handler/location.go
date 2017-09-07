@@ -7,6 +7,7 @@ import (
 
 	"time"
 
+	"github.com/elBroom/highloadCup/app"
 	"github.com/elBroom/highloadCup/app/model"
 	"github.com/elBroom/highloadCup/app/storage"
 	"github.com/mailru/easyjson"
@@ -86,7 +87,7 @@ func GetLocatioAvgEndpoint(ctx *fasthttp.RequestCtx, id uint32) {
 		ctx.SetStatusCode(http.StatusNotFound)
 		return
 	}
-
+	
 	var sum int32
 	var count int32
 	for _, visit := range visits {
