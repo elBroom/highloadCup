@@ -49,24 +49,31 @@ func (v *Visit) Update(id uint32, new_visit *model.Visit) error {
 		return ErrDoesNotExist
 	}
 
-	old_visit := *visit
 	isChangeLocation := new_visit.LocationID != nil && (*visit.LocationID) != (*new_visit.LocationID)
 	isChangeUser := new_visit.UserID != nil && (*visit.UserID) != (*new_visit.UserID)
+	isChangeVisitAt := new_visit.VisitedAt != nil && (*visit.VisitedAt) != (*new_visit.VisitedAt)
+	if isChangeLocation || isChangeUser || isChangeVisitAt {
+		DataStorage.VisitList.Delete(visit, new_visit)
+	}
 	if isChangeLocation {
 		visit.LocationID = new_visit.LocationID
 	}
 	if isChangeUser {
 		visit.UserID = new_visit.UserID
 	}
-	if new_visit.VisitedAt != nil {
+	if isChangeVisitAt {
 		visit.VisitedAt = new_visit.VisitedAt
 	}
 	if new_visit.Mark != nil && (*new_visit.Mark) >= 0 {
 		visit.Mark = new_visit.Mark
 	}
-	if isChangeLocation || isChangeUser {
-		DataStorage.VisitList.Update(&old_visit, visit)
+	if isChangeLocation || isChangeVisitAt {
+		DataStorage.VisitList.AddLocation(visit)
 	}
+	if isChangeUser || isChangeVisitAt {
+		DataStorage.VisitList.AddUser(visit)
+	}
+
 	return nil
 }
 

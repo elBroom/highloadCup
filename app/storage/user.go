@@ -26,8 +26,8 @@ func (u *User) Add(user *model.User) error {
 
 	u.mx.Lock()
 	defer u.mx.Unlock()
-	val := u.user[*(user.ID)]
-	if val != nil {
+
+	if u.user[*(user.ID)] != nil {
 		return ErrAlreadyExist
 	}
 	u.user[*(user.ID)] = user
@@ -64,7 +64,6 @@ func (u *User) Update(id uint32, new_user *model.User) error {
 	return nil
 }
 
-// Return copy
 func (u *User) Get(id uint32) (*model.User, bool) {
 	//u.mx.RLock()
 	//defer u.mx.RUnlock()

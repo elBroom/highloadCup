@@ -1,7 +1,5 @@
 package model
 
-import "strings"
-
 type Visit struct {
 	ID         *uint32 `json:"id,omitempty"`
 	LocationID *uint32 `json:"location"`
@@ -12,8 +10,4 @@ type Visit struct {
 
 type Visits struct {
 	Visits []Visit `json:"visits"`
-}
-
-func (v *Visits) CheckNull(b []byte) bool {
-	return strings.Contains(string(b), ": null")
 }

@@ -5,9 +5,6 @@ import (
 
 	"fmt"
 
-	"time"
-
-	"github.com/elBroom/highloadCup/app"
 	"github.com/elBroom/highloadCup/app/model"
 	"github.com/elBroom/highloadCup/app/storage"
 	"github.com/mailru/easyjson"
@@ -26,106 +23,72 @@ func GetLocationEndpoint(ctx *fasthttp.RequestCtx, id uint32) {
 
 func GetLocatioAvgEndpoint(ctx *fasthttp.RequestCtx, id uint32) {
 	params := ctx.QueryArgs()
-	now := time.Now()
 
 	//  Parse fromDate parameter
-	var fromDate int64
+	var fromDate *int64
 	if params.Has("fromDate") {
 		if _, err := params.GetUint("fromDate"); err != nil {
 			ctx.SetStatusCode(http.StatusBadRequest)
 			return
 		}
 		tmp, _ := params.GetUint("fromDate")
-		fromDate = int64(tmp)
+		tmp2 := int64(tmp)
+		fromDate = &tmp2
 	}
 
 	//  Parse toDate parameter
-	var toDate int64
+	var toDate *int64
 	if params.Has("toDate") {
 		if _, err := params.GetUint("toDate"); err != nil {
 			ctx.SetStatusCode(http.StatusBadRequest)
 			return
 		}
 		tmp, _ := params.GetUint("toDate")
-		toDate = int64(tmp)
+		tmp2 := int64(tmp)
+		toDate = &tmp2
 	}
 
 	//  Parse fromAge parameter
-	var fromAge int64
+	var fromAge *int64
 	if params.Has("fromAge") {
 		if _, err := params.GetUint("fromAge"); err != nil {
 			ctx.SetStatusCode(http.StatusBadRequest)
 			return
 		}
 		tmp, _ := params.GetUint("fromAge")
-		fromAge = int64(tmp)
+		tmp2 := int64(tmp)
+		fromAge = &tmp2
 	}
 
 	//  Parse toAge parameter
-	var toAge int64
+	var toAge *int64
 	if params.Has("toAge") {
 		if _, err := params.GetUint("toAge"); err != nil {
 			ctx.SetStatusCode(http.StatusBadRequest)
 			return
 		}
 		tmp, _ := params.GetUint("toAge")
-		toAge = int64(tmp)
+		tmp2 := int64(tmp)
+		toAge = &tmp2
 	}
 
 	//  Parse gender parameter
-	var gender string
+	var gender *string
 	if params.Has("gender") {
-		gender = string(params.Peek("gender"))
-		if gender != "m" && gender != "f" {
+		tmp := string(params.Peek("gender"))
+		if tmp != "m" && tmp != "f" {
 			ctx.SetStatusCode(http.StatusBadRequest)
 			return
 		}
+		gender = &tmp
 	}
 
-	visits, ok := storage.DataStorage.VisitList.GetByLocation(id)
-	if !ok {
+	avg := storage.DataStorage.VisitList.GetByLocation(id, fromDate, toDate, fromAge, toAge, gender)
+	if avg == nil {
 		ctx.SetStatusCode(http.StatusNotFound)
 		return
 	}
-	
-	var sum int32
-	var count int32
-	for _, visit := range visits {
-		if visit.UserID == nil {
-			continue
-		}
-		user, ok := storage.DataStorage.User.Get(*visit.UserID)
-		if !ok {
-			continue
-		}
-		if params.Has("fromDate") && fromDate >= (*visit.VisitedAt) {
-			continue
-		}
-		if params.Has("toDate") && toDate <= (*visit.VisitedAt) {
-			continue
-		}
-
-		if params.Has("fromAge") &&
-			now.AddDate(-int(fromAge), 0, 0).Unix() <= (*user.BirthDate) {
-			continue
-		}
-		if params.Has("toAge") &&
-			now.AddDate(-int(toAge), 0, 0).Unix() >= (*user.BirthDate) {
-			continue
-		}
-		if params.Has("gender") && gender != (*user.Gender) {
-			continue
-		}
-		count++
-		sum += int32(*visit.Mark)
-	}
-
-	var avg float64
-	if count > 0 {
-		avg = Round(float64(sum)/float64(count), 0.5, 5)
-	}
-
-	answ := fmt.Sprintf(`{"avg": %.5f}`, avg)
+	answ := fmt.Sprintf(`{"avg": %.5f}`, *avg)
 	writeStr(ctx, answ)
 }
 

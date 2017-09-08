@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/elBroom/highloadCup/app/model"
+	"github.com/google/btree"
 )
 
 const CountUser = 1100000
@@ -31,8 +32,8 @@ func NewStorage() *Storage {
 		Location: &Location{location: [CountLocation]*model.Location{}},
 		Visit:    &Visit{visit: [CountVisit]*model.Visit{}},
 		VisitList: &VisitList{
-			user:     [CountUser]([]*model.Visit){},
-			location: [CountLocation]([]*model.Visit){},
+			user:     [CountUser](*btree.BTree){},
+			location: [CountLocation](*btree.BTree){},
 		},
 	}
 }
