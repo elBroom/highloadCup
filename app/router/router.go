@@ -19,6 +19,7 @@ func RequestHandler() fasthttp.RequestHandler {
 				app.Phase++
 				isLastGet = true
 			}
+
 			if matchGetUser(path) > 0 {
 				// /users/:id
 				id, err := parseID(path[7:])
@@ -40,11 +41,23 @@ func RequestHandler() fasthttp.RequestHandler {
 					handler.GetVisitEndpoint(ctx, id)
 					return
 				}
-			} else if matchLocationAvg(path) > 0 {
+			}
+
+			resp, ok := app.MemoryCache.Get(ctx.URI())
+			if ok {
+				ctx.SetStatusCode(*resp.StatusCode())
+				ctx.Response.Header.Set("Content-Type", "application/json")
+				ctx.Response.Header.Set("Connection", "keep-alive")
+				ctx.Response.Header.Set("Content-Length", strconv.Itoa(len(*resp.Body())))
+				ctx.SetBody(*resp.Body())
+				return
+			}
+			if matchLocationAvg(path) > 0 {
 				// /locations/:id/avg
 				id, err := parseID(path[11 : len(path)-4])
 				if id <= storage.CountLocation && err == nil {
 					handler.GetLocatioAvgEndpoint(ctx, id)
+					app.MemoryCache.Set(ctx.URI(), &ctx.Response, app.LifeTime)
 					return
 				}
 			} else if matchVisitUser(path) > 0 {
@@ -52,6 +65,7 @@ func RequestHandler() fasthttp.RequestHandler {
 				id, err := parseID(path[7 : len(path)-7])
 				if id <= storage.CountUser && err == nil {
 					handler.VisitUserEndpoint(ctx, id)
+					app.MemoryCache.Set(ctx.URI(), &ctx.Response, app.LifeTime)
 					return
 				}
 			}
