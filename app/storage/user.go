@@ -5,6 +5,7 @@ import (
 
 	"log"
 
+	"github.com/elBroom/highloadCup/app"
 	"github.com/elBroom/highloadCup/app/model"
 )
 
@@ -24,14 +25,19 @@ func (u *User) Add(user *model.User) error {
 		return nil
 	}
 
-	u.mx.Lock()
-	defer u.mx.Unlock()
-
 	if u.user[*(user.ID)] != nil {
 		return ErrAlreadyExist
 	}
+
+	u.mx.Lock()
+	defer u.mx.Unlock()
 	u.user[*(user.ID)] = user
-	DataStorage.VisitList.AddEmptyForUser(*(user.ID))
+
+	if app.Phase == 2 {
+		go DataStorage.VisitList.AddEmptyForUser(*(user.ID))
+	} else {
+		DataStorage.VisitList.AddEmptyForUser(*(user.ID))
+	}
 	return nil
 }
 
@@ -40,12 +46,13 @@ func (u *User) Update(id uint32, new_user *model.User) error {
 		return ErrIDInUpdate
 	}
 
-	u.mx.Lock()
-	defer u.mx.Unlock()
 	user := u.user[id]
 	if user == nil {
 		return ErrDoesNotExist
 	}
+
+	u.mx.Lock()
+	defer u.mx.Unlock()
 	if new_user.BirthDate != nil {
 		user.BirthDate = new_user.BirthDate
 	}

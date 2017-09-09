@@ -5,6 +5,7 @@ import (
 
 	"log"
 
+	"github.com/elBroom/highloadCup/app"
 	"github.com/elBroom/highloadCup/app/model"
 )
 
@@ -24,14 +25,20 @@ func (l *Location) Add(location *model.Location) error {
 		return nil
 	}
 
-	l.mx.Lock()
-	defer l.mx.Unlock()
 	val := l.location[*(location.ID)]
 	if val != nil {
 		return ErrAlreadyExist
 	}
+
+	l.mx.Lock()
+	defer l.mx.Unlock()
 	l.location[*(location.ID)] = location
-	DataStorage.VisitList.AddEmptyForLocation(*(location.ID))
+
+	if app.Phase == 2 {
+		go DataStorage.VisitList.AddEmptyForLocation(*(location.ID))
+	} else {
+		DataStorage.VisitList.AddEmptyForLocation(*(location.ID))
+	}
 	return nil
 }
 
@@ -40,12 +47,13 @@ func (l *Location) Update(id uint32, new_location *model.Location) error {
 		return ErrIDInUpdate
 	}
 
-	l.mx.Lock()
-	defer l.mx.Unlock()
 	location := l.location[id]
 	if location == nil {
 		return ErrDoesNotExist
 	}
+
+	l.mx.Lock()
+	defer l.mx.Unlock()
 	if new_location.Place != nil {
 		location.Place = new_location.Place
 	}

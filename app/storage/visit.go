@@ -5,6 +5,7 @@ import (
 
 	"log"
 
+	"github.com/elBroom/highloadCup/app"
 	"github.com/elBroom/highloadCup/app/model"
 )
 
@@ -24,16 +25,20 @@ func (v *Visit) Add(visit *model.Visit) error {
 		return nil
 	}
 
-	v.mx.Lock()
-	defer v.mx.Unlock()
 	val := v.visit[*(visit.ID)]
 	if val != nil {
 		return ErrAlreadyExist
 	}
 
+	v.mx.Lock()
+	defer v.mx.Unlock()
 	v.visit[*(visit.ID)] = visit
 
-	DataStorage.VisitList.Add(visit)
+	if app.Phase == 2 {
+		go DataStorage.VisitList.Add(visit)
+	} else {
+		DataStorage.VisitList.Add(visit)
+	}
 	return nil
 }
 
@@ -42,12 +47,13 @@ func (v *Visit) Update(id uint32, new_visit *model.Visit) error {
 		return ErrIDInUpdate
 	}
 
-	v.mx.Lock()
-	defer v.mx.Unlock()
 	visit := v.visit[id]
 	if visit == nil {
 		return ErrDoesNotExist
 	}
+
+	v.mx.Lock()
+	defer v.mx.Unlock()
 
 	isChangeLocation := new_visit.LocationID != nil && (*visit.LocationID) != (*new_visit.LocationID)
 	isChangeUser := new_visit.UserID != nil && (*visit.UserID) != (*new_visit.UserID)
@@ -67,12 +73,15 @@ func (v *Visit) Update(id uint32, new_visit *model.Visit) error {
 	if new_visit.Mark != nil && (*new_visit.Mark) >= 0 {
 		visit.Mark = new_visit.Mark
 	}
-	if isChangeLocation || isChangeVisitAt {
-		DataStorage.VisitList.AddLocation(visit)
-	}
-	if isChangeUser || isChangeVisitAt {
-		DataStorage.VisitList.AddUser(visit)
-	}
+
+	go func() {
+		if isChangeLocation || isChangeVisitAt {
+			DataStorage.VisitList.AddLocation(visit)
+		}
+		if isChangeUser || isChangeVisitAt {
+			DataStorage.VisitList.AddUser(visit)
+		}
+	}()
 
 	return nil
 }

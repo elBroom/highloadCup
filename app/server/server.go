@@ -1,12 +1,13 @@
 package server
 
 import (
+	"time"
+
 	"github.com/elBroom/highloadCup/app/router"
 	"github.com/valyala/fasthttp"
 )
 
 func RunHTTPServer(addr string) error {
-	//router := router.Routing()
-
-	return fasthttp.ListenAndServe(addr, router.RequestHandler())
+	return fasthttp.ListenAndServe(addr,
+		fasthttp.TimeoutHandler(router.RequestHandler(), 2*time.Second, "timeout"))
 }

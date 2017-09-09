@@ -5,7 +5,6 @@ import (
 
 	"log"
 
-	"math"
 	"time"
 
 	"github.com/elBroom/highloadCup/app/model"
@@ -13,7 +12,7 @@ import (
 	"github.com/google/btree"
 )
 
-var deqree = 4
+var deqree = 6
 
 type VisitList struct {
 	mxU      sync.RWMutex
@@ -156,7 +155,7 @@ func (vl *VisitList) GetByLocation(id uint32,
 
 	var avg float64
 	if count > 0 {
-		avg = Round(float64(sum)/float64(count), 0.5, 5)
+		avg = float64(sum)/float64(count) + 1e-10
 	}
 	return &avg
 }
@@ -210,18 +209,4 @@ func (vl *VisitList) GetByUser(id uint32,
 	}
 
 	return true
-}
-
-func Round(val float64, roundOn float64, places int) (newVal float64) {
-	var round float64
-	pow := math.Pow(10, float64(places))
-	digit := pow * val
-	_, div := math.Modf(digit)
-	if div >= roundOn {
-		round = math.Ceil(digit)
-	} else {
-		round = math.Floor(digit)
-	}
-	newVal = round / pow
-	return
 }
